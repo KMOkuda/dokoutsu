@@ -1,147 +1,111 @@
-# デプロイガイド
+# Railwayデプロイ手順・記録
 
-> 対象: Webアプリを「コードのpush」から「実際にインターネット上で動く状態」にするまでの、ホスティング先に依存しない共通の考え方と、Railwayを使う場合の具体的な手順をまとめたもの。
-> 本番環境がRailway以外(VPS、他のPaaS等)になった場合でも、パートA・パートCの考え方はそのまま使える。
-
----
-
-## パートA: ホスティング先によらない共通の考え方
-
-デプロイの仕組みは、サービスが変わっても基本構造は同じ。まずこれを理解しておくと、Railway以外を使うことになっても迷わない。
-
-### A-1. 全体の流れ(共通)
-
-```
-1. コードをどこかに置く(GitHubなど)
-2. デプロイ先のサーバーがそのコードを取得する
-3. 依存ライブラリをインストールする(ビルド)
-4. アプリを起動するコマンドを実行する
-5. 外部からアクセスできるようにする(ポート・ドメインの設定)
-```
-
-Railwayに限らず、Heroku・Render・自前のVPSなど、どの選択肢でもこの5段階を経る。違うのは「2〜5をどこまで自動でやってくれるか」の差でしかない。
-
-- **PaaS(Railway、Render、Herokuなど)** — 2〜5をサービス側がほぼ自動でやってくれる
-- **VPS(さくらVPS、AWS Lightsailなど)** — 2〜5を自分で設定する(git pull、pip install、systemdでの起動、nginxでのポート公開、を自分で書く)
-
-### A-2. 「起動コマンド」はコードとして残す
-
-アプリをどう起動するか(例: `python manage.py migrate && gunicorn config.wsgi --bind 0.0.0.0:$PORT`)は、**必ずリポジトリの中のファイルとして残す**。
-
-- Railway/Herokuなら `Procfile`
-- Docker前提のホスティングなら `Dockerfile`のCMD
-- 自前のVPSなら `systemd`のservice定義ファイルや起動スクリプト
-
-共通するのは「起動コマンドをホスティング先の管理画面に直接手入力しない」ということ。管理画面に直接書くと、そのホスティング先でしか通用しない設定になり、リポジトリを見ても実際の挙動が分からなくなる。**乗り換えを考えるなら、起動コマンドは常にコード側(ファイル)で管理する**。
-
-### A-3. 接続先(DB等)は環境変数で渡す
-
-DBの接続先やSECRET_KEYのような値をコードに直接書かず、**環境変数**として渡す設計にしておく。
-
-```python
-# 例(Python + dj-database-url)
-DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR}/db.sqlite3"
-    )
-}
-```
-
-この形にしておけば、ホスティング先が変わっても、コードは一切変更せず、環境変数の値(`DATABASE_URL`)を新しい接続先に差し替えるだけで済む。
-
-### A-4. 「サービス間の接続」は明示的な設定が必要なことが多い
-
-アプリのサービスとDBのサービスが「同じプロジェクト/同じ契約の中にある」というだけでは、自動的には繋がらないことが多い。**接続情報(環境変数)を明示的に渡す設定が必要**、という点は多くのホスティング先で共通の注意点。
-
-### A-5. デプロイ後は「ビルドが通ったか」「起動できたか」「外部から繋がるか」を分けて確認する
-
-エラーが起きたとき、この3つのどの段階かを切り分けると原因が分かりやすい。
-
-1. ビルド(依存ライブラリのインストール)は成功したか
-2. 起動コマンドは正常に実行されたか(ログを見る)
-3. 発行されたURL/ポートに実際にアクセスできるか
+> `dokoutsu`プロジェクトで実際にRailwayを使ってセットアップした内容の記録。
+> 同じ作業を再現する場合や、後から見返して思い出す用のドキュメント。
 
 ---
 
-## パートB: Railwayを使う場合の具体的な手順
+## 1. 全体の流れ
 
-ここから先はRailway固有の操作手順。今回`dokoutsu`プロジェクトで実際に使った/ハマった内容。
+```
+1. コードをgitにpush
+2. GitHubがRailwayに通知する(連携済みなら自動)
+3. Railwayがrequirements.txt等を見て言語・フレームワークを自動判定する
+4. 必要なライブラリをインストールする(ビルド)
+5. コンテナを起動し、Procfileに書かれたコマンドを実行する
+   - migrateなどの初期化処理
+   - アプリ本体の起動(gunicorn等)
+6. Networking設定で発行したURLでアクセスできるようになる
+```
 
-### B-1. 必要なファイル
+pushしてから実際にアプリが動くまで、上記の6段階を経る。エラーが起きたときは「どの段階で失敗しているか」を切り分けると原因を特定しやすい。
+
+---
+
+## 2. リポジトリに追加したファイルとその役割
 
 | ファイル | 役割 |
 |---|---|
 | `requirements.txt` | 必要なPythonライブラリの一覧。Railwayはこのファイルの存在で「Pythonプロジェクトだ」と自動判定する |
-| `Procfile` | コンテナ起動時に実行するコマンド(パートA-2の実体) |
-| `.gitignore` | `__pycache__`、`db.sqlite3`、`.env`等を除外 |
+| `Procfile` | コンテナ起動時に実行するコマンドを定義する |
+| `.gitignore` | `__pycache__`、`db.sqlite3`、`.env`等を除外する |
+| `config/settings.py`の`DATABASES`設定 | `DATABASE_URL`があればPostgreSQLに、無ければSQLiteに接続する(`dj-database-url`使用) |
 
-Procfileの例:
+### Procfileの中身
+
 ```
 web: python manage.py migrate && gunicorn config.wsgi --bind 0.0.0.0:$PORT
 ```
 
-### B-2. アプリのデプロイ
+- `python manage.py migrate` — DBのテーブルを作成・更新する
+- `&&` — 前のコマンドが成功したら次を実行する
+- `gunicorn config.wsgi --bind 0.0.0.0:$PORT` — 本番用のWebサーバーでアプリを起動する。`$PORT`はRailwayが自動で割り当てる環境変数
+
+---
+
+## 3. Railway側でやったセットアップ手順
+
+### 3.1 アプリのデプロイ
 
 1. https://railway.app にログイン
-2. ダッシュボードで **「New Project」** をクリック(**「Template」ではない**。Templateは再利用のための設計図で、それだけでは何もデプロイされない)
+2. **「New Project」** をクリック(「Template」ではなく「Project」であることに注意。Templateは再利用のための設計図で、それだけでは何もデプロイされない)
 3. **「Deploy from GitHub repo」** を選択
-4. GitHubとの連携がまだなら、対象リポジトリへのアクセスを許可する
-5. リポジトリとブランチ(通常`main`)を選択 → 自動でビルド・デプロイが始まる
+4. GitHubとの連携を許可し、`dokoutsu`リポジトリを選択
+5. ブランチ(`main`)を選択 → 自動でビルド・デプロイが始まる
 
-### B-3. データベース(PostgreSQL)の追加
+### 3.2 データベース(PostgreSQL)の追加
 
 1. 同じProjectの中で **「+ New」→「Database」→「Add PostgreSQL」**
 
-### B-4. アプリとDBを繋ぐ(パートA-4の実例・最重要)
+### 3.3 アプリとDBを繋ぐ(一番のハマりどころ)
 
-同じProjectの中にあるだけでは、アプリ側のサービスにDB接続情報は自動で渡らない。
+同じProjectの中にあるだけでは、アプリ側のサービス(`dokoutsu`)にDB接続情報は自動で渡らない。
 
-1. アプリ側のサービスを開く → `Variables`タブ
+1. `dokoutsu`サービスを開く → `Variables`タブ
 2. `DATABASE_URL`が無ければ追加し、Postgresサービスの`DATABASE_URL`を参照する形で設定する
 3. 保存すると自動で再デプロイされる
 
-これが抜けていると、アプリはコンテナ内の一時ファイル(SQLite等、フォールバック先)に対して処理してしまい、見た目上は成功のログが出るのに本番DBには何も反映されない、という分かりにくい落とし穴になる。
+これをやる前は、`migrate`はコンテナ内の一時的なSQLiteに対して実行されていた(ログ上は成功して見えるが、本番のPostgresには何も反映されていなかった)。設定後、実際にPostgresにテーブルが作られることを確認済み。
 
-### B-5. 公開URLの発行
+### 3.4 公開URLの発行
 
-1. アプリ側のサービス → `Settings` → `Networking` → **「Generate Domain」**
-2. `https://(名前).up.railway.app` のようなURLが発行される
+1. `dokoutsu`サービス → `Settings` → `Networking` → **「Generate Domain」**
+2. `https://dokoutsu-production.up.railway.app` が発行された
 
-> ダッシュボードが「Networking info temporarily unavailable」のような表示エラーを出すことがあるが、多くはダッシュボード側の一時的な表示不具合。`Deployments`タブでステータスが成功していれば実害はないことが多い。
+### 3.5 Custom Start Command欄は空のままにする
 
-### B-6. Custom Start Command欄は空のままにする(パートA-2の実例)
-
-Railwayのサービス設定には`Custom Start Command`という欄があるが、ここに入力すると`Procfile`より優先されてしまう。空のままにしておけば、Railwayは自動的に`Procfile`の内容を使う。
+Railwayのサービス設定には`Custom Start Command`という欄があるが、ここに入力すると`Procfile`より優先されてしまう。今回誤って`Procfile`と同じ内容を直接入力していたが、欄を空にして保存し直し、`Procfile`側に一本化した。
 
 ---
 
-## パートC: Railway以外(VPS・他のPaaS)に切り替える場合
+## 4. 遭遇した問題と対処のまとめ
 
-パートAの考え方に沿って作ってあれば、切り替え時にやることは主に以下。
-
-- [ ] `requirements.txt`・依存関係の定義ファイルはそのまま使える
-- [ ] `Procfile`(またはDockerfile)に書いた起動コマンドは、乗り換え先でもほぼそのまま使える
-- [ ] 環境変数(`DATABASE_URL`、`SECRET_KEY`等)を、乗り換え先の管理画面/設定ファイルで新しく設定し直す
-- [ ] VPSの場合は、2〜5(パートA-1)を自分で構築する必要がある
-  - コードの取得(`git pull`、またはCI/CDでの自動デプロイ)
-  - 依存インストール(`pip install -r requirements.txt`)
-  - 起動(`systemd`のservice化、または`Procfile`相当のコマンドを直接実行)
-  - 外部公開(`nginx`等のリバースプロキシでポートを公開し、ドメイン・HTTPSを設定)
-
-つまり「何を」やる必要があるかはパートAの通り変わらず、「誰が(サービスが自動でやるか、自分でやるか)」だけが変わる、という理解で進められる。
+| 症状 | 原因 | 対処 |
+|---|---|---|
+| Templateにリポジトリを追加しても何も起きない | Templateは設計図であり、実際のデプロイはProject側で行うものだった | Projectの方で「Deploy from GitHub repo」からやり直した |
+| 「Domains and TCP proxy details could not be loaded」 | Railwayダッシュボードの一時的な表示不具合(推定) | Deploymentsタブでステータスが成功していれば実害なしと判断 |
+| migrateのログは成功しているのにPostgresにテーブルが無い | `DATABASE_URL`がアプリ側サービスに渡っておらず、SQLiteにフォールバックしていた | `Variables`タブで`DATABASE_URL`をPostgresサービス参照で明示的に追加 |
+| Custom Start CommandとProcfileの内容が同じで混乱 | Custom Start Command欄に直接同じコマンドを入力していた(Procfileより優先されてしまう設定) | Custom Start Command欄を空にして保存し直し、Procfileに一本化 |
 
 ---
 
-## パートD: 最小構成での動作確認のやり方
+## 5. 動作確認に使った方法(smoketestアプリ)
 
-新しいプロジェクトで、実装が何もない状態からデプロイの仕組みが正しく機能するかを先に確認したい場合、以下の使い捨てアプリで一通りのパイプラインを確認できる(ホスティング先を問わず有効な方法)。
+実装が何もない状態で、デプロイの仕組みが正しく機能するかを先に確認するため、以下を実施した。
 
-1. 最小限のアプリ(Djangoなら`manage.py`、`config/settings.py`等)を用意する
-2. 依存関係の定義ファイル・起動コマンドの定義ファイルをリポジトリに含める
-3. push/デプロイ → ビルドが通るか確認
-4. モデルを1つだけ持つ使い捨てアプリ(例: `Ping`モデルのみ)を追加し、マイグレーションファイルを作る
-5. push/デプロイ → ログでマイグレーションが実行されているか確認
-6. DB側の管理画面等で、実際にテーブルが作られているか確認
-7. 確認できたら使い捨てアプリを削除してpushする
+1. 最小限のDjangoプロジェクト(`manage.py`、`config/settings.py`等)を用意
+2. `requirements.txt`・`Procfile`をリポジトリに含めてpush → ビルド・デプロイが通ることを確認
+3. `Ping`モデル1つだけを持つ使い捨てアプリ`smoketest`を追加し、`makemigrations`でマイグレーションファイルを作成
+4. push → デプロイログで`Applying smoketest.0001_initial... OK`を確認
+5. Postgresの`Database`タブで実際にテーブルが作られたことを確認
+6. 確認完了後、`smoketest`を削除してpush
 
-これにより、「コード取得」「ビルド」「DB接続」「マイグレーション」の4点を、本実装に入る前にまとめて検証できる。
+これで「GitHub連携」「ビルド」「DB接続」「マイグレーション」の4点をまとめて検証できた。
+
+---
+
+## 6. 現在の状態
+
+- `dokoutsu`リポジトリ: 最小限のDjangoプロジェクト構成(`smoketest`は削除済み)
+- Railway: `dokoutsu`(アプリ)と`Postgres`の2サービスが同一Project内で稼働中、`DATABASE_URL`紐付け済み
+- 公開URL: `https://dokoutsu-production.up.railway.app`(動作確認用の表示のみ、本実装はこれから)
