@@ -13,7 +13,10 @@
     <div class="field">
       <label for="{{ form.deadline_date.id_for_label }}">回答の締切</label>
       <div class="deadline-row">
-        {{ form.deadline_date }}
+        <div class="date-field">
+          <span class="date-display" aria-hidden="true"></span>
+          {{ form.deadline_date }}
+        </div>
         {{ form.deadline_hour }}
         {{ form.deadline_minute }}
       </div>

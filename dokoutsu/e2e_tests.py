@@ -109,6 +109,12 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page.fill("#id_deadline_date", deadline_date)
         page.select_option("#id_deadline_hour", "18")
         page.select_option("#id_deadline_minute", "0")
+        tomorrow = timezone.localtime() + timedelta(days=1)
+        weekday = "月火水木金土日"[tomorrow.weekday()]
+        self.assertEqual(
+            page.inner_text(".date-display"),
+            f"{tomorrow.year}年{tomorrow.month}月{tomorrow.day}日（{weekday}）",
+        )
         page.click("label.check-item:has-text('回答後に公開リンクを表示')")
         page.click("label.toggle-item:has-text('黒番')")
         self._shot("E2_1_problem_form")
@@ -124,6 +130,10 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page.click("#problem-submit")
         page.wait_for_selector("#publish-dialog[open]")
         self.assertIn("E2E作成テスト", page.inner_text("#publish-dialog"))
+        self.assertEqual(
+            page.inner_text("[data-summary='deadline']"),
+            f"{tomorrow.month}月{tomorrow.day}日（{weekday}）18:00",
+        )
         self._shot("E2_3_publish_confirm")
 
         page.click("#publish-confirm")

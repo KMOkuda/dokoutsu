@@ -250,14 +250,20 @@ select:disabled {
   background: var(--color-bg);
 }
 
-select {
+/* プルダウンの▾はデザインどおり右上寄りの小さな三角 */
+select,
+.date-field {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--color-primary) 50%),
-    linear-gradient(135deg, var(--color-primary) 50%, transparent 50%);
-  background-position: calc(100% - 12px) 50%, calc(100% - 7px) 50%;
-  background-size: 5px 5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0h8L4 6z' fill='%230b66b8'/%3E%3C/svg%3E");
+  background-position: right 10px top 11px;
+  background-size: 7px 5px;
   background-repeat: no-repeat;
-  padding-right: 22px;
+  padding-right: 24px;
+  font-weight: bold;
+}
+
+.deadline-row select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0h8L4 6z' fill='%239a9a9a'/%3E%3C/svg%3E");
 }
 
 .deadline-row {
@@ -265,12 +271,40 @@ select {
   gap: var(--spacing-sm);
 }
 
-.deadline-row input {
-  flex: 2;
+/* 日付は表示用テキストの上に透明なネイティブ入力を重ね、タップでカレンダーを開く */
+.date-field {
+  position: relative;
+  flex: 0 0 48%;
+  display: flex;
+  align-items: center;
+  height: var(--control-height);
+  padding-left: var(--spacing-sm);
+  border: var(--border-input);
+  background-color: var(--color-surface);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.date-field input[type="date"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+}
+
+.date-display.is-empty {
+  color: #9a9a9a;
+  font-weight: normal;
 }
 
 .deadline-row select {
   flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
 }
 
 .inline-row {
