@@ -1,14 +1,30 @@
 import os
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 動作確認用の暫定値。本実装時はセキュリティ方針(2.5 秘密情報の管理)に従い、
-# 環境変数からの読み込みを必須にする。
-SECRET_KEY = os.environ.get("SECRET_KEY", "test-only-not-for-production")
-DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
+# Railway上ではRailwayが自動で設定するこの変数の有無で本番と判定する
+IS_RAILWAY = "RAILWAY_ENVIRONMENT_NAME" in os.environ
+
+# 本番では設定漏れで危険な状態のまま起動しないよう、DEBUGは既定でオフ、SECRET_KEYは必須にする
+DEBUG = os.environ.get("DEBUG", "false" if IS_RAILWAY else "true").lower() == "true"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if IS_RAILWAY:
+        raise ImproperlyConfigured("環境変数 SECRET_KEY が設定されていません")
+    SECRET_KEY = "local-dev-only-not-for-production"
 ALLOWED_HOSTS = ["*"]
+
+# Railwayはhttpsを手前で終端してhttpで転送するため、転送元のプロトコルを信頼してhttps扱いにする
+# (これがないとフォーム送信時のCSRF検証で送信元不一致の403になる)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if os.environ.get("RAILWAY_PUBLIC_DOMAIN"):
+    CSRF_TRUSTED_ORIGINS = [f"https://{os.environ['RAILWAY_PUBLIC_DOMAIN']}"]
+if IS_RAILWAY:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
