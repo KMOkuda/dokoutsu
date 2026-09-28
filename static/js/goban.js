@@ -135,35 +135,45 @@
     return { ok: true, grid: next };
   }
 
+  // options.region: {minX, minY, maxX, maxY}(交点座標、両端含む)を指定すると、
+  // 盤面の一部だけを拡大表示する(回答一覧画面「着手位置周辺の拡大表示」用)。
   function renderBoard(svg, grid, options) {
     options = options || {};
+    var region = options.region || { minX: 0, minY: 0, maxX: SIZE - 1, maxY: SIZE - 1 };
+    var minX = region.minX;
+    var minY = region.minY;
+    var cols = region.maxX - region.minX + 1;
+    var rows = region.maxY - region.minY + 1;
+
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    var boardSize = MARGIN * 2 + CELL * (SIZE - 1);
-    svg.setAttribute("viewBox", "0 0 " + boardSize + " " + boardSize);
+    var boardWidth = MARGIN * 2 + CELL * (cols - 1);
+    var boardHeight = MARGIN * 2 + CELL * (rows - 1);
+    svg.setAttribute("viewBox", "0 0 " + boardWidth + " " + boardHeight);
     svg.setAttribute("width", "100%");
 
-    for (var i = 0; i < SIZE; i++) {
+    for (var row = 0; row < rows; row++) {
       var line1 = document.createElementNS(SVG_NS, "line");
       line1.setAttribute("x1", MARGIN);
-      line1.setAttribute("x2", boardSize - MARGIN);
-      line1.setAttribute("y1", MARGIN + i * CELL);
-      line1.setAttribute("y2", MARGIN + i * CELL);
+      line1.setAttribute("x2", boardWidth - MARGIN);
+      line1.setAttribute("y1", MARGIN + row * CELL);
+      line1.setAttribute("y2", MARGIN + row * CELL);
       line1.setAttribute("stroke", "black");
       svg.appendChild(line1);
-
+    }
+    for (var col = 0; col < cols; col++) {
       var line2 = document.createElementNS(SVG_NS, "line");
       line2.setAttribute("y1", MARGIN);
-      line2.setAttribute("y2", boardSize - MARGIN);
-      line2.setAttribute("x1", MARGIN + i * CELL);
-      line2.setAttribute("x2", MARGIN + i * CELL);
+      line2.setAttribute("y2", boardHeight - MARGIN);
+      line2.setAttribute("x1", MARGIN + col * CELL);
+      line2.setAttribute("x2", MARGIN + col * CELL);
       line2.setAttribute("stroke", "black");
       svg.appendChild(line2);
     }
 
-    for (var y = 0; y < SIZE; y++) {
-      for (var x = 0; x < SIZE; x++) {
-        var cx = MARGIN + x * CELL;
-        var cy = MARGIN + y * CELL;
+    for (var y = region.minY; y <= region.maxY; y++) {
+      for (var x = region.minX; x <= region.maxX; x++) {
+        var cx = MARGIN + (x - minX) * CELL;
+        var cy = MARGIN + (y - minY) * CELL;
         if (grid[y][x]) {
           var circle = document.createElementNS(SVG_NS, "circle");
           circle.setAttribute("cx", cx);
@@ -270,19 +280,60 @@
     draw();
   }
 
+  var ZOOM_RADIUS = 3; // 着手位置周辺の拡大表示の範囲(片側の交点数)
+
   function initViewer(section) {
     var grid = parseBoardSgf(section.dataset.sgf || "");
     var svg = makeSvg();
     var highlight = null;
+    var zoomable = false;
+
     if (section.dataset.move) {
       var xy = sgfToCoord(section.dataset.move);
-      var placed = placeStone(grid, xy[0], xy[1], "B");
       // 回答の着手は色を問わず表示のみのため、取り判定なしでそのまま重ねる
       grid[xy[1]][xy[0]] = grid[xy[1]][xy[0]] || "B";
       highlight = xy;
+      zoomable = true;
     }
+
+    // 初期状態は着手位置周辺の拡大表示(詳細設計書「回答一覧画面」2.2/4.1)
+    var zoomed = zoomable;
+    var toggleBtn = null;
+
+    function region() {
+      if (!zoomed || !highlight) return null;
+      return {
+        minX: Math.max(0, highlight[0] - ZOOM_RADIUS),
+        minY: Math.max(0, highlight[1] - ZOOM_RADIUS),
+        maxX: Math.min(SIZE - 1, highlight[0] + ZOOM_RADIUS),
+        maxY: Math.min(SIZE - 1, highlight[1] + ZOOM_RADIUS),
+      };
+    }
+
+    function draw() {
+      renderBoard(svg, grid, { highlight: highlight, region: region() });
+      if (toggleBtn) {
+        toggleBtn.textContent = zoomed ? "−" : "+";
+        toggleBtn.setAttribute(
+          "aria-label",
+          zoomed ? "盤面全体を表示する" : "着手位置周辺を拡大する"
+        );
+      }
+    }
+
+    if (zoomable) {
+      toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "goban-zoom-toggle";
+      toggleBtn.addEventListener("click", function () {
+        zoomed = !zoomed;
+        draw();
+      });
+      section.appendChild(toggleBtn);
+    }
+
     section.appendChild(svg);
-    renderBoard(svg, grid, { highlight: highlight });
+    draw();
   }
 
   document.addEventListener("DOMContentLoaded", function () {

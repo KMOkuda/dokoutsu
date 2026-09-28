@@ -4,10 +4,15 @@
 {% if problems %}
   {% for problem in problems %}
     <article>
-      <h2>{{ problem.title }}</h2>
-      <p>{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }}{% else %}{{ problem.deadline|date:"n月j日 H:i" }}{% endif %} に終了</p>
-      <p>回答 {{ problem.answer_count }}</p>
-      <a href="{% url 'answer_list' pk=problem.pk %}">回答を見る</a>
+      <div class="card-row">
+        <section aria-label="盤面のサムネイル" class="thumbnail" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
+        <div class="card-body">
+          <h2>{{ problem.title }}</h2>
+          <p>{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }}{% else %}{{ problem.deadline|date:"n月j日 H:i" }}{% endif %} に終了</p>
+          <p>回答 {{ problem.answer_count }}</p>
+          <a href="{% url 'answer_list' pk=problem.pk %}">回答を見る</a>
+        </div>
+      </div>
       <form method="post" action="{% url 'problem_delete' pk=problem.pk %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="archive_problems">
@@ -18,4 +23,5 @@
 {% else %}
   <p>受付終了の問題はありません。</p>
 {% endif %}
+<script src="/static/js/goban.js"></script>
 {% endblock %}
