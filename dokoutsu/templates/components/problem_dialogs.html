@@ -1,0 +1,40 @@
+{% comment %}
+一覧画面の「…」ボトムシートと確認ダイアログ。
+呼び出し側で with can_close=True/False を渡す(受付中のみ「出題を終了する」を表示)。
+{% endcomment %}
+<dialog id="action-sheet" class="sheet" aria-label="問題の操作">
+  <div class="sheet-header">
+    <p class="sheet-title"><span data-fill="turnLabel"></span>／<span data-fill="title"></span></p>
+    <p class="sheet-sub">回答 <span data-fill="answerCount"></span>件・<span data-fill="status"></span></p>
+  </div>
+  {% if can_close %}
+    <button type="button" class="sheet-item" data-next-dialog="close-dialog">◎ 出題を終了する</button>
+  {% endif %}
+  <button type="button" class="sheet-item sheet-danger" data-next-dialog="delete-dialog">🗑 問題を削除する</button>
+  <button type="button" class="sheet-item sheet-cancel" data-dialog-cancel>キャンセル</button>
+</dialog>
+
+{% if can_close %}
+<dialog id="close-dialog" class="confirm" aria-labelledby="close-dialog-title">
+  <p id="close-dialog-title" class="confirm-title">この問題の出題を終了しますか？</p>
+  <p class="confirm-body">締切を待たずに受付を終了します。「<span data-fill="title"></span>」に寄せられた<span data-fill="answerCount"></span>件の回答とコメントはそのまま残り、受付終了の問題に移動します。</p>
+  <form method="post" data-action-key="closeUrl">
+    {% csrf_token %}
+    <button type="submit" class="confirm-primary">出題を終了する</button>
+  </form>
+  <button type="button" class="confirm-cancel" data-dialog-cancel>キャンセル</button>
+</dialog>
+{% endif %}
+
+<dialog id="delete-dialog" class="confirm" aria-labelledby="delete-dialog-title">
+  <p id="delete-dialog-title" class="confirm-title">この問題を削除しますか？</p>
+  <p class="confirm-body">「<span data-fill="title"></span>」と、寄せられた<span data-fill="answerCount"></span>件の回答・コメントがすべて削除されます。この操作は取り消せません。</p>
+  <form method="post" data-action-key="deleteUrl">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_name }}">
+    <button type="submit" class="confirm-danger">削除する</button>
+  </form>
+  <button type="button" class="confirm-cancel" data-dialog-cancel>キャンセル</button>
+</dialog>
+
+{% include "components/share_sheet.html" %}

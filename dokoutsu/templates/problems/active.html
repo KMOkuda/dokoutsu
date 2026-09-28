@@ -1,33 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>受付中の問題</h1>
+<h1 class="list-title">受付中の問題</h1>
 {% if problems %}
+  <ul class="problem-list">
   {% for problem in problems %}
-    <article>
+    <li class="problem-card">
       <div class="card-row">
         <section aria-label="盤面のサムネイル" class="thumbnail" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
         <div class="card-body">
-          <h2>{{ problem.title }}</h2>
-          <p>{{ problem.deadline|date:"n月j日 H:i" }}まで</p>
-          <p>回答 {{ problem.answer_count }}</p>
-          <a href="{% url 'answer_list' pk=problem.pk %}">回答を見る</a>
+          <h2 class="card-title">{{ problem.title }}</h2>
+          <p class="card-meta">{{ problem.get_turn_display }}</p>
+          <p class="card-accent">残り{{ problem.remaining }}({{ problem.deadline|date:"n月j日 H:i" }}まで)</p>
         </div>
       </div>
-      <form method="post" action="{% url 'problem_close' pk=problem.pk %}">
-        {% csrf_token %}
-        <button type="submit">受付を終了する</button>
-      </form>
-      <form method="post" action="{% url 'problem_delete' pk=problem.pk %}">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="active_problems">
-        <button type="submit">削除する</button>
-      </form>
-    </article>
+      <div class="card-actions">
+        <a class="btn-outline" href="{% url 'answer_create' pk=problem.pk %}">問題</a>
+        <a class="btn-count" href="{% url 'answer_list' pk=problem.pk %}"><span>回答</span><span>{{ problem.answer_count }}</span></a>
+        <button type="button" class="btn-icon" aria-label="その他の操作" data-sheet-trigger="actions"
+          data-title="{{ problem.title }}" data-turn-label="{{ problem.get_turn_display }}"
+          data-answer-count="{{ problem.answer_count }}" data-status="受付中"
+          data-close-url="{% url 'problem_close' pk=problem.pk %}"
+          data-delete-url="{% url 'problem_delete' pk=problem.pk %}">…</button>
+        <button type="button" class="btn-icon" aria-label="シェア" data-sheet-trigger="share"
+          data-title="{{ problem.title }}" data-share-url="{{ problem.share_url }}">⤴</button>
+      </div>
+    </li>
   {% endfor %}
+  </ul>
 {% else %}
-  <p>受付中の問題はありません。</p>
-  <a href="{% url 'problem_new' %}">新しく問題を作る</a>
-  <a href="{% url 'archive_problems' %}">受付終了の問題を見る</a>
+  <div class="empty-state">
+    <p>受付中の問題はありません。</p>
+    <a href="{% url 'problem_new' %}">新しく問題を作る ›</a>
+    <a href="{% url 'archive_problems' %}">受付終了の問題を見る ›</a>
+  </div>
 {% endif %}
+{% endblock %}
+
+{% block dialogs %}
+{% include "components/problem_dialogs.html" with can_close=True next_name="active_problems" %}
+{% endblock %}
+
+{% block scripts %}
 <script src="/static/js/goban.js"></script>
+<script src="/static/js/sheets.js"></script>
 {% endblock %}

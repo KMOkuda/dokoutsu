@@ -1,26 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>新規登録</h1>
-<form method="post" novalidate>
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  <div>
-    <label for="{{ form.email.id_for_label }}">メールアドレス</label>
-    {{ form.email }}
-    {{ form.email.errors }}
-  </div>
-  <div>
-    <label for="{{ form.username.id_for_label }}">ID(ユーザー名)</label>
-    {{ form.username }}
-    {{ form.username.errors }}
-  </div>
-  <div>
-    <label for="{{ form.password.id_for_label }}">パスワード</label>
-    {{ form.password }}
-    <p>8文字以上、英字と数字を組み合わせてください。</p>
-    {{ form.password.errors }}
-  </div>
-  <button type="submit">登録する</button>
-</form>
-<a href="{% url 'login' %}">すでに登録済みの方はこちら</a>
+<div class="form-section">
+  <h1 class="accent-title">新規登録</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="field">
+      <label for="{{ form.email.id_for_label }}">メールアドレス</label>
+      {{ form.email }}
+      {{ form.email.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.username.id_for_label }}">ID(ユーザー名)</label>
+      {{ form.username }}
+      {{ form.username.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.password.id_for_label }}">パスワード</label>
+      {{ form.password }}
+      <p class="field-hint">8文字以上、英字と数字を組み合わせてください。</p>
+      {{ form.password.errors }}
+    </div>
+    <button type="submit">登録する</button>
+  </form>
+  <p class="center-link"><a class="text-link" href="{% url 'login' %}">すでに登録済みの方はこちら</a></p>
+</div>
 {% endblock %}

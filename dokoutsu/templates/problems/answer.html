@@ -1,52 +1,81 @@
 {% extends "base.html" %}
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
-<h1>着手はどこに打つべきか</h1>
-<p>問題: {{ problem.title }}</p>
-<p>手番: {{ problem.get_turn_display }}</p>
+<div class="problem-heading">
+  <h1>{{ problem.title }}</h1>
+  <p class="muted">投稿者：{{ problem.author.username }}</p>
+  {% if is_open %}
+    <p class="accent-small">締切まであと{{ remaining }}</p>
+  {% else %}
+    <p class="accent-small">締切を過ぎました</p>
+  {% endif %}
+</div>
 
 {% if posted %}
-  <section aria-label="盤面" data-goban-viewer data-sgf="{{ problem.board_sgf }}" data-move="{{ form.instance.move }}"></section>
-  <p>投稿しました！</p>
+  <div class="answer-inputs is-disabled">
+    <input type="text" value="{{ form.cleaned_data.nickname }}" disabled aria-label="ニックネーム">
+    <input type="text" value="{{ form.cleaned_data.rank.label }}" disabled aria-label="棋力" class="rank-display">
+    <span class="turn-badge">{% if problem.turn == 'black' %}●{% else %}○{% endif %} {{ problem.get_turn_display }}</span>
+  </div>
+  <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}" data-move="{{ posted_move }}" data-turn="{{ problem.turn }}" data-no-zoom></section>
+  <div class="posted-message">
+    <p class="accent-title">投稿しました！</p>
+    {% if show_answer_list_link %}
+      <p class="muted">他の人の投稿が見られます。</p>
+    {% else %}
+      <p class="muted">みんなの回答は締切後に公開されます。</p>
+    {% endif %}
+  </div>
+  <div class="field">
+    <input type="text" value="{{ form.cleaned_data.body }}" placeholder="コメント" disabled aria-label="コメント">
+  </div>
   {% if show_answer_list_link %}
-    <a href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
-  {% else %}
-    <p>締切後にシェアされます。</p>
+    <div class="bottom-actions">
+      <a class="btn-primary" href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
+    </div>
   {% endif %}
 {% elif not is_open %}
-  <section aria-label="盤面" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
-  <p>締切を過ぎました</p>
-  <a href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
+  <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}"></section>
+  <div class="bottom-actions">
+    <p class="muted">回答の受付は終了しています。</p>
+    <a class="btn-primary" href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
+  </div>
 {% else %}
-  <p>締切まであと少し</p>
-  <form method="post" novalidate>
+  <form method="post" novalidate id="answer-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
+    <div class="answer-inputs">
+      {{ form.nickname }}
+      {{ form.rank }}
+      <span class="turn-badge">{% if problem.turn == 'black' %}●{% else %}○{% endif %} {{ problem.get_turn_display }}</span>
+    </div>
+    <div class="answer-errors">
+      {{ form.nickname.errors }}
+      {{ form.rank.errors }}
+      {{ form.move.errors }}
+    </div>
     <section
+      class="board-area"
       aria-label="盤面"
       data-goban-answer
+      data-labels
       data-sgf="{{ problem.board_sgf }}"
       data-turn="{{ problem.turn }}"
       data-goban-target="{{ form.move.id_for_label }}"
+      data-goban-submit="answer-submit"
     ></section>
-    <div>
-      <label for="{{ form.nickname.id_for_label }}">ニックネーム</label>
-      {{ form.nickname }}
-      {{ form.nickname.errors }}
-    </div>
-    <div>
-      <label for="{{ form.rank.id_for_label }}">棋力</label>
-      {{ form.rank }}
-      {{ form.rank.errors }}
-    </div>
+    <p class="hint">指を離すと着手します。</p>
     {{ form.move }}
-    {{ form.move.errors }}
-    <div>
-      <label for="{{ form.body.id_for_label }}">コメント</label>
+    <div class="field">
       {{ form.body }}
     </div>
-    <button type="submit">この一手で投稿する</button>
+    <div class="bottom-actions">
+      <button type="submit" id="answer-submit" disabled>この一手で投稿する</button>
+    </div>
   </form>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
 <script src="/static/js/goban.js"></script>
 {% endblock %}

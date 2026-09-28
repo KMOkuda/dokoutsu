@@ -1,15 +1,24 @@
-<nav aria-label="共通メニュー">
-  <button type="button" class="menu-open" aria-haspopup="true">☰</button>
-  <ul class="menu-list" hidden>
-    <li><a href="{% url 'problem_new' %}">新しく問題を作る</a></li>
-    <li><a href="{% url 'active_problems' %}">受付中の問題を見る</a></li>
-    <li><a href="{% url 'archive_problems' %}">受付終了の問題を見る</a></li>
-    <li>
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">ログアウト</button>
-      </form>
-    </li>
-  </ul>
+{% with current=request.resolver_match.url_name %}
+<nav aria-label="共通メニュー" class="menu">
+  <button type="button" class="menu-open" aria-haspopup="true" aria-expanded="false" aria-label="メニューを開く">☰</button>
+  <div class="menu-overlay" hidden></div>
+  <div class="menu-list" hidden>
+    <div class="menu-list-header">
+      <span class="app-name">どこ打つくん</span>
+      <button type="button" class="menu-close" aria-label="メニューを閉じる">×</button>
+    </div>
+    <ul>
+      <li><a href="{% url 'problem_new' %}"{% if current == 'problem_new' %} aria-current="page"{% endif %}>新しく問題を作る</a></li>
+      <li><a href="{% url 'active_problems' %}"{% if current == 'active_problems' %} aria-current="page"{% endif %}>受付中の問題を見る</a></li>
+      <li><a href="{% url 'archive_problems' %}"{% if current == 'archive_problems' %} aria-current="page"{% endif %}>受付終了の問題を見る</a></li>
+      <li>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="menu-logout">ログアウト</button>
+        </form>
+      </li>
+    </ul>
+  </div>
 </nav>
 <script src="/static/js/menu.js"></script>
+{% endwith %}

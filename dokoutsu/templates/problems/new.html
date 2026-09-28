@@ -1,31 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>新しく問題を作る</h1>
 <form method="post" id="problem-form" novalidate>
   {% csrf_token %}
-  {{ form.non_field_errors }}
-  <div>
-    <label for="{{ form.title.id_for_label }}">問題のタイトル</label>
-    {{ form.title }}
-    {{ form.title.errors }}
+  <div class="form-section">
+    <h1>新しく問題を作る</h1>
+    {{ form.non_field_errors }}
+    <div class="field">
+      <label for="{{ form.title.id_for_label }}">問題のタイトル</label>
+      {{ form.title }}
+      {{ form.title.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.deadline_date.id_for_label }}">回答の締切</label>
+      <div class="deadline-row">
+        {{ form.deadline_date }}
+        {{ form.deadline_hour }}
+        {{ form.deadline_minute }}
+      </div>
+      {{ form.deadline_date.errors }}
+    </div>
+    <fieldset class="field check-list">
+      <legend>回答公開</legend>
+      {% for radio in form.disclosure_type %}
+        <label class="check-item">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+      {% endfor %}
+    </fieldset>
+    <fieldset class="field toggle-group">
+      <legend>回答する手番</legend>
+      {% for radio in form.turn %}
+        <label class="toggle-item">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+      {% endfor %}
+    </fieldset>
   </div>
-  <div>
-    <label for="{{ form.deadline.id_for_label }}">出題の締切</label>
-    {{ form.deadline }}
-    {{ form.deadline.errors }}
-  </div>
-  <fieldset>
-    <legend>回答する手番</legend>
-    {{ form.turn }}
-  </fieldset>
-  <fieldset>
-    <legend>回答公開</legend>
-    {{ form.disclosure_type }}
-  </fieldset>
+
   {{ form.board_sgf }}
-  {{ form.board_sgf.errors }}
-  <section aria-label="盤面エディタ" data-goban-editor data-goban-target="id_board_sgf"></section>
-  <button type="submit">出題する</button>
+  <section class="board-area" aria-label="盤面エディタ">
+    {{ form.board_sgf.errors }}
+    <div data-goban-editor data-goban-target="id_board_sgf" data-goban-palette="stone-palette"></div>
+    <p class="hint">交点をタップして石を置いてください。</p>
+  </section>
+
+  <div class="bottom-bar">
+    <div id="stone-palette" class="stone-palette" role="toolbar" aria-label="石を選ぶ"></div>
+    <button type="submit" id="problem-submit">出題する</button>
+  </div>
 </form>
+{% endblock %}
+
+{% block dialogs %}
+<dialog id="publish-dialog" class="confirm" aria-labelledby="publish-dialog-title">
+  <p id="publish-dialog-title" class="confirm-title">この内容で出題しますか？</p>
+  <dl class="confirm-summary">
+    <dt>タイトル</dt><dd data-summary="title"></dd>
+    <dt>締切</dt><dd data-summary="deadline"></dd>
+    <dt>回答公開</dt><dd data-summary="disclosure"></dd>
+    <dt>手番</dt><dd data-summary="turn"></dd>
+  </dl>
+  <p class="confirm-body">出題後は盤面とタイトルを変更できません。</p>
+  <button type="button" class="confirm-primary" id="publish-confirm">出題する</button>
+  <button type="button" class="confirm-cancel" id="publish-cancel">キャンセル</button>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
 <script src="/static/js/goban.js"></script>
+<script src="/static/js/problem_new.js"></script>
 {% endblock %}

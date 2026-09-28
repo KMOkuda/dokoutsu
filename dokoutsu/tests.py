@@ -239,12 +239,14 @@ class ProblemTests(TestCase):
         self.client.login(username="hana", password="pass1234")
 
     def test_create_problem_redirects_to_created(self):
-        deadline = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")
+        deadline_date = (timezone.localtime() + timedelta(days=1)).date().isoformat()
         response = self.client.post(
             reverse("problem_new"),
             {
                 "title": "テスト問題",
-                "deadline": deadline,
+                "deadline_date": deadline_date,
+                "deadline_hour": 12,
+                "deadline_minute": 0,
                 "disclosure_type": Problem.AFTER_DEADLINE,
                 "turn": Problem.BLACK,
                 "board_sgf": "AB[pd]",
@@ -264,12 +266,14 @@ class ProblemTests(TestCase):
         self.assertEqual(response.context["answer_count"], 0)
 
     def test_empty_title_rejected(self):
-        deadline = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")
+        deadline_date = (timezone.localtime() + timedelta(days=1)).date().isoformat()
         response = self.client.post(
             reverse("problem_new"),
             {
                 "title": "",
-                "deadline": deadline,
+                "deadline_date": deadline_date,
+                "deadline_hour": 12,
+                "deadline_minute": 0,
                 "disclosure_type": Problem.AFTER_DEADLINE,
                 "turn": Problem.BLACK,
                 "board_sgf": "AB[pd]",
@@ -279,12 +283,14 @@ class ProblemTests(TestCase):
         self.assertEqual(Problem.objects.count(), 0)
 
     def test_past_deadline_rejected(self):
-        deadline = (timezone.now() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")
+        deadline_date = (timezone.localtime() - timedelta(days=1)).date().isoformat()
         response = self.client.post(
             reverse("problem_new"),
             {
                 "title": "過去締切",
-                "deadline": deadline,
+                "deadline_date": deadline_date,
+                "deadline_hour": 12,
+                "deadline_minute": 0,
                 "disclosure_type": Problem.AFTER_DEADLINE,
                 "turn": Problem.BLACK,
                 "board_sgf": "AB[pd]",
@@ -293,12 +299,14 @@ class ProblemTests(TestCase):
         self.assertContains(response, "締切は現在より後の日時を指定してください")
 
     def test_empty_board_rejected(self):
-        deadline = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")
+        deadline_date = (timezone.localtime() + timedelta(days=1)).date().isoformat()
         response = self.client.post(
             reverse("problem_new"),
             {
                 "title": "盤面なし",
-                "deadline": deadline,
+                "deadline_date": deadline_date,
+                "deadline_hour": 12,
+                "deadline_minute": 0,
                 "disclosure_type": Problem.AFTER_DEADLINE,
                 "turn": Problem.BLACK,
                 "board_sgf": "",

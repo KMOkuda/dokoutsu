@@ -1,21 +1,28 @@
 /* デザイン参考PDF(docs/design/screens_wireframe/*_design.pdf)に基づくトークン定義。
    正確な値への調整はここを直すだけで済むようにする。 */
 :root {
-  --color-primary: #1a56db;
-  --color-primary-dark: #123a99;
+  --color-primary: #0b66b8;
+  --color-primary-dark: #084f8f;
+  --color-primary-pale: #86b3d9;
+  --color-primary-tint: #e6f0fa;
+  --color-link: #0d3f6e;
   --color-text: #1a1a1a;
-  --color-muted: #6b7280;
-  --color-border: #cbd5e1;
-  --color-bg: #f3f4f6;
+  --color-muted: #6b6b6b;
+  --color-line: #222222;
+  --color-divider: #bdbdbd;
+  --color-bg: #f1f1f1;
   --color-surface: #ffffff;
-  --color-danger: #dc2626;
-  --color-black-stone: #111111;
-  --color-white-stone: #ffffff;
+  --color-board: #f7f4f1;
+  --color-danger: #e0321c;
+  --color-overlay: rgba(0, 0, 0, 0.45);
+  --color-line-app: #06c755;
 
-  --font-base: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
-  --font-size-base: 15px;
-  --font-size-lg: 20px;
-  --font-size-sm: 13px;
+  --font-base: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-xs: 11px;
+  --font-size-title: 17px;
+  --font-size-app: 21px;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -23,7 +30,9 @@
   --spacing-lg: 24px;
 
   --radius: 0;
-  --tap-size: 48px;
+  --border-input: 2px solid var(--color-line);
+  --control-height: 40px;
+  --header-height: 52px;
   --screen-width: 430px;
 }
 
@@ -31,146 +40,353 @@
   box-sizing: border-box;
 }
 
+html {
+  background: var(--color-bg);
+}
+
 body {
   font-family: var(--font-base);
   font-size: var(--font-size-base);
   color: var(--color-text);
   background: var(--color-bg);
-  margin: 0;
-}
-
-a {
-  color: var(--color-primary);
-}
-
-h1 {
-  font-size: var(--font-size-lg);
-  margin: var(--spacing-md) 0;
-}
-
-/* --- レイアウト --- */
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary);
-  color: white;
-  font-weight: bold;
-}
-
-main {
-  max-width: var(--screen-width);
   margin: 0 auto;
-  padding: var(--spacing-md);
-  background: var(--color-surface);
+  max-width: var(--screen-width);
   min-height: 100vh;
 }
 
-article {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+main {
+  padding-bottom: 96px;
 }
 
-section {
-  margin-bottom: var(--spacing-md);
+h1 {
+  font-size: var(--font-size-title);
+  font-weight: bold;
+  margin: 0 0 var(--spacing-md);
+}
+
+p {
+  margin: 0;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- ヘッダー --- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: var(--header-height);
+  padding: 0 var(--spacing-md);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.app-name {
+  font-size: var(--font-size-app);
+  font-weight: bold;
+  letter-spacing: 0.02em;
+}
+
+.header-back {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  padding: 0 var(--spacing-xs) 4px 0;
+  cursor: pointer;
+}
+
+/* --- 共通の文字要素 --- */
+
+.accent-title {
+  color: var(--color-primary);
+}
+
+.accent-small {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  margin-top: var(--spacing-xs);
+}
+
+.muted {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.hint {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.text-link {
+  color: var(--color-link);
+  font-weight: bold;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.center-link {
+  text-align: center;
+  margin-top: var(--spacing-md);
+}
+
+.section-title {
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  margin: 0 0 var(--spacing-sm);
+}
+
+/* --- レイアウト部品 --- */
+
+.form-section {
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+}
+
+.divider-top {
+  border-top: 2px solid var(--color-divider);
+}
+
+.problem-heading {
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
+}
+
+.problem-heading h1 {
+  margin-bottom: var(--spacing-xs);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 64px var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.empty-state a {
+  color: var(--color-primary);
+  font-weight: bold;
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.notice-box {
+  background: var(--color-surface);
+  border: var(--border-input);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.notice-strong {
+  font-weight: bold;
+  margin-bottom: var(--spacing-xs);
 }
 
 /* --- フォーム --- */
 
-form div,
-form fieldset {
-  margin-bottom: var(--spacing-md);
+.field {
+  margin: 0 0 var(--spacing-md);
+  padding: 0;
   border: none;
-  padding: 0;
+  min-width: 0;
 }
 
-label {
+label,
+legend {
   display: block;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  color: var(--color-text);
   margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--color-muted);
-}
-
-fieldset legend {
-  font-size: var(--font-size-sm);
-  color: var(--color-muted);
   padding: 0;
 }
 
-fieldset label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--color-text);
-  margin-right: var(--spacing-md);
+.field-hint {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
 }
 
 input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="datetime-local"],
+input[type="date"],
 select,
 textarea {
   width: 100%;
-  min-height: var(--tap-size);
-  padding: var(--spacing-sm);
+  height: var(--control-height);
+  padding: 0 var(--spacing-sm);
+  font-family: inherit;
   font-size: var(--font-size-base);
-  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border: var(--border-input);
   border-radius: var(--radius);
   background: var(--color-surface);
 }
 
-textarea {
-  min-height: 96px;
+input::placeholder {
+  color: #9a9a9a;
 }
+
+input:disabled,
+select:disabled {
+  border-color: var(--color-divider);
+  color: var(--color-muted);
+  background: var(--color-bg);
+}
+
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-primary) 50%),
+    linear-gradient(135deg, var(--color-primary) 50%, transparent 50%);
+  background-position: calc(100% - 12px) 50%, calc(100% - 7px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 22px;
+}
+
+.deadline-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.deadline-row input {
+  flex: 2;
+}
+
+.deadline-row select {
+  flex: 1;
+}
+
+.inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+
+/* 回答公開: 四角いチェックボックス風の選択肢 */
+.check-list label.check-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+}
+
+.check-item input,
+.toggle-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.check-item span::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: var(--spacing-sm);
+  vertical-align: -2px;
+  border: 2px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.check-item input:checked + span::before {
+  border-color: var(--color-primary);
+  background: radial-gradient(var(--color-primary) 45%, var(--color-surface) 50%);
+}
+
+/* 回答する手番: トグルボタン */
+.toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.toggle-group legend {
+  width: 100%;
+}
+
+.toggle-item span {
+  display: inline-block;
+  min-width: 60px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--border-input);
+  background: var(--color-surface);
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.toggle-item input:checked + span {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint);
+  color: var(--color-link);
+}
+
+/* --- ボタン --- */
 
 button,
-input[type="submit"] {
-  display: inline-block;
-  min-height: var(--tap-size);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-base);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-primary);
+.btn-primary,
+.btn-secondary {
+  font-family: inherit;
   cursor: pointer;
 }
 
 button[type="submit"],
 .btn-primary {
+  display: block;
   width: 100%;
-  background: var(--color-primary);
-  color: white;
+  height: var(--control-height);
   border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
   font-weight: bold;
+  text-align: center;
+  line-height: var(--control-height);
+  text-decoration: none;
 }
 
-button[type="submit"]:active {
-  background: var(--color-primary-dark);
+button[type="submit"]:disabled {
+  background: var(--color-primary-pale);
+  cursor: default;
 }
 
-article form {
-  margin-bottom: var(--spacing-sm);
-}
-
-article form:last-child {
-  margin-bottom: 0;
-}
-
-form[action*="delete"] button {
+.btn-secondary,
+button.btn-secondary {
+  display: block;
   width: 100%;
-  background: var(--color-surface);
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-  font-weight: normal;
+  height: var(--control-height);
+  margin-top: var(--spacing-md);
+  border: 2px solid var(--color-divider);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
 }
 
 .errorlist {
@@ -181,55 +397,586 @@ form[action*="delete"] button {
   font-size: var(--font-size-sm);
 }
 
-/* --- 共通メニュー --- */
+/* --- 問題投稿画面 --- */
 
-nav[aria-label="共通メニュー"] {
-  margin-left: auto;
-  position: relative;
+.board-area {
+  background: var(--color-board);
+  padding: var(--spacing-sm) var(--spacing-sm) 0;
+  border-top: 1px solid var(--color-divider);
 }
 
-.menu-open {
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--screen-width);
+  z-index: 15;
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface);
+  border-top: 2px solid var(--color-divider);
+}
+
+.bottom-bar button[type="submit"] {
+  flex: 1;
+}
+
+.stone-palette {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.palette-button {
+  height: var(--control-height);
+  min-width: 48px;
+  padding: 0 var(--spacing-sm);
+  border: var(--border-input);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+.palette-button[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint);
+  color: var(--color-link);
+}
+
+/* --- 出題完了画面 --- */
+
+.problem-link-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: var(--border-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.problem-link-card .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.chevron {
+  font-size: 20px;
+  color: var(--color-muted);
+}
+
+.share-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 48px;
+  padding: 0 var(--spacing-sm);
+  border: var(--border-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.share-url {
+  margin-top: var(--spacing-sm);
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  word-break: break-all;
+}
+
+.share-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 9px;
+  font-weight: bold;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.share-line {
+  background: var(--color-line-app);
+  border-color: var(--color-line-app);
+  color: #fff;
+}
+
+.share-x {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* --- 回答投稿画面 --- */
+
+.answer-inputs {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-md);
+}
+
+.answer-inputs input {
+  flex: 0 0 36%;
+}
+
+.answer-inputs select,
+.answer-inputs .rank-display {
+  flex: 0 0 76px;
+}
+
+.answer-errors {
+  padding: 0 var(--spacing-lg);
+}
+
+.turn-badge {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  height: 32px;
+  padding: 0 var(--spacing-sm);
+  border: var(--border-input);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+.turn-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--spacing-lg) var(--spacing-sm);
+}
+
+#answer-form .field,
+.posted-message + .field {
+  padding: 0 var(--spacing-lg);
+}
+
+.posted-message {
+  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-md);
+}
+
+.posted-message .accent-title {
+  font-size: var(--font-size-title);
+  font-weight: bold;
+}
+
+.bottom-actions {
+  border-top: 2px solid var(--color-divider);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* --- 回答一覧画面 --- */
+
+.answer-list {
+  border-top: 2px solid var(--color-divider);
+}
+
+.answer-card {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 2px solid var(--color-divider);
+}
+
+.answer-board {
+  position: relative;
+  flex: 0 0 110px;
+  width: 110px;
+  background: var(--color-surface);
+}
+
+.answer-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.answer-author {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.answer-comment {
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+
+.goban-zoom-toggle {
+  position: absolute;
+  right: -22px;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  line-height: 16px;
+  border: 2px solid var(--color-line);
+  background: var(--color-surface);
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* --- 問題一覧(2c/2d) --- */
+
+.list-title {
+  font-size: var(--font-size-base);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
+  margin: 0;
+}
+
+.problem-card {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 2px solid var(--color-divider);
+}
+
+.card-row {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+}
+
+.thumbnail {
+  flex: 0 0 76px;
+  width: 76px;
+  border: 2px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title {
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  margin: var(--spacing-xs) 0 var(--spacing-sm);
+  line-height: 1.4;
+}
+
+.card-meta {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.card-accent {
+  color: var(--color-link);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+}
+
+.card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.card-actions .spacer {
+  flex: 1;
+}
+
+.card-actions .btn-count:first-child {
+  flex: 0 0 30%;
+}
+
+.btn-outline,
+.btn-count,
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height);
+  border: var(--border-input);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.btn-outline {
+  flex: 1;
+  padding: 0 var(--spacing-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.btn-count {
+  flex: 1;
+  justify-content: space-between;
+  padding: 0 var(--spacing-md);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-count span:last-child {
+  font-size: var(--font-size-base);
+}
+
+.btn-icon {
+  justify-content: center;
+  width: var(--control-height);
+  padding: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+/* --- ボトムシート・確認ダイアログ --- */
+
+dialog {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--color-text);
+}
+
+dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+dialog.sheet {
+  width: 100%;
+  max-width: var(--screen-width);
+  margin: auto auto 0;
+  background: var(--color-surface);
+}
+
+.sheet-header {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.sheet-title {
+  font-weight: bold;
+}
+
+.sheet-sub {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.sheet-item {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  text-align: left;
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.sheet-danger {
+  color: var(--color-danger);
+}
+
+.sheet-cancel {
+  font-weight: normal;
+  color: var(--color-muted);
+  border-bottom: none;
+}
+
+.share-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: var(--spacing-md) var(--spacing-sm);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.share-grid a,
+.share-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+}
+
+.share-grid .share-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 12px;
+}
+
+dialog.confirm {
+  width: calc(100% - 64px);
+  max-width: 340px;
+  background: var(--color-surface);
+}
+
+.confirm-title {
+  font-weight: bold;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
+}
+
+.confirm-body {
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+  color: var(--color-text);
+  padding: 0 var(--spacing-lg) var(--spacing-md);
+}
+
+.confirm-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-xs) var(--spacing-md);
+  margin: 0;
+  padding: 0 var(--spacing-lg) var(--spacing-md);
+  font-size: var(--font-size-xs);
+}
+
+.confirm-summary dt {
+  color: var(--color-muted);
+}
+
+.confirm-summary dd {
+  margin: 0;
+  font-weight: bold;
+}
+
+dialog.confirm button[type="submit"],
+.confirm-primary,
+.confirm-danger,
+.confirm-cancel {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--spacing-lg);
+  border: none;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  line-height: 44px;
+}
+
+.confirm-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+dialog.confirm button.confirm-danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.confirm-cancel {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-top: 1px solid var(--color-divider);
+}
+
+/* --- 共通メニュー(右からのドロワー) --- */
+
+.menu {
+  margin-left: auto;
+}
+
+.menu-open,
+.menu-close {
   background: none;
   border: none;
-  color: white;
-  font-size: var(--font-size-lg);
-  min-height: auto;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
   padding: var(--spacing-xs);
 }
 
-.menu-list {
-  position: absolute;
-  right: 0;
-  top: calc(100% + var(--spacing-xs));
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  list-style: none;
-  margin: 0;
-  padding: var(--spacing-xs) 0;
-  min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--color-overlay);
 }
 
+.menu-list {
+  position: fixed;
+  top: var(--header-height);
+  bottom: 0;
+  right: max(0px, calc((100vw - var(--screen-width)) / 2));
+  z-index: 31;
+  width: min(72vw, 310px);
+  background: #f7fbff;
+  color: var(--color-text);
+}
+
+.menu-overlay[hidden],
 .menu-list[hidden] {
   display: none;
 }
 
-.menu-list li {
-  padding: 0;
+/* 開いている間は暗転したヘッダーの右端に × を重ねる */
+.menu-list-header {
+  position: fixed;
+  top: 0;
+  right: max(0px, calc((100vw - var(--screen-width)) / 2));
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--spacing-md);
+}
+
+.menu-list-header .app-name {
+  display: none;
 }
 
 .menu-list a,
-.menu-list button {
+.menu-list .menu-logout {
   display: block;
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-md);
   border: none;
-  text-align: left;
+  border-bottom: 1px solid var(--color-divider);
   background: none;
   color: var(--color-text);
-  min-height: var(--tap-size);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  text-align: left;
+  text-decoration: none;
+  height: auto;
+  line-height: normal;
+}
+
+.menu-list a[aria-current="page"]::after {
+  content: "▾";
+  float: right;
+  color: var(--color-primary);
+  font-size: 10px;
+}
+
+.menu-list .menu-logout {
+  font-weight: normal;
+  text-align: left;
 }
 
 /* --- 盤面 --- */
@@ -238,52 +985,18 @@ nav[aria-label="共通メニュー"] {
 [data-goban-answer],
 [data-goban-viewer] {
   display: block;
-  max-width: 100%;
 }
 
-[data-goban-editor] div,
-[data-goban-answer] div {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
+.goban {
+  display: block;
+  user-select: none;
 }
 
-[data-goban-editor] button,
-[data-goban-answer] button {
-  min-height: auto;
-  padding: var(--spacing-xs) var(--spacing-sm);
+.goban-label {
+  font-size: 8px;
+  fill: #444;
 }
 
-.goban-zoom-toggle {
-  min-height: auto;
-  width: auto;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  margin-bottom: var(--spacing-xs);
-  font-weight: bold;
-}
-
-/* --- 一覧画面のカード --- */
-
-.rank-badge,
-article p {
-  color: var(--color-muted);
-  font-size: var(--font-size-sm);
-  margin: var(--spacing-xs) 0;
-}
-
-.card-row {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: flex-start;
-}
-
-.card-row .thumbnail {
-  flex: 0 0 72px;
-  width: 72px;
-  margin: 0;
-}
-
-.card-row .card-body {
-  flex: 1;
-  min-width: 0;
+.menu-open[aria-expanded="true"] {
+  visibility: hidden;
 }

@@ -1,14 +1,51 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>出題しました</h1>
-<p>{{ problem.deadline|date:"n月j日(D) H:i" }} まで回答を受け付けます</p>
-<article>
-  <h2>{{ problem.title }}</h2>
-  <p>回答 {{ answer_count }}件</p>
-</article>
-<section>
-  <h2>友達に問題をシェアする</h2>
-  <p><a href="{{ answer_url }}">{{ answer_url }}</a></p>
+<div class="form-section">
+  <h1 class="accent-title">出題しました。</h1>
+  <p class="muted">{{ problem.deadline|date:"n月j日(D) H:i" }} まで回答を受け付けます。</p>
+  <a class="problem-link-card" href="{% url 'answer_create' pk=problem.pk %}">
+    <section aria-label="盤面のサムネイル" class="thumbnail" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
+    <span class="card-body">
+      <span class="card-title">{{ problem.title }}</span>
+      <span class="card-meta">{{ problem.get_turn_display }}・回答 {{ answer_count }}件</span>
+    </span>
+    <span class="chevron" aria-hidden="true">›</span>
+  </a>
+</div>
+
+<section class="form-section divider-top" aria-labelledby="share-heading">
+  <h2 id="share-heading" class="section-title">友達に問題をシェアする</h2>
+  <div class="share-buttons" data-share-url="{{ answer_url }}" data-share-title="{{ problem.title }}">
+    <a class="share-button" data-share="line" target="_blank" rel="noopener"><span class="share-icon share-line">LINE</span>LINE</a>
+    <a class="share-button" data-share="x" target="_blank" rel="noopener"><span class="share-icon share-x">X</span>X</a>
+    <button type="button" class="share-button" data-share="copy"><span class="share-icon share-link">🔗</span><span data-copy-label>リンク</span></button>
+    <button type="button" class="share-button" data-share="native"><span class="share-icon share-other">⤴</span>その他</button>
+  </div>
+  <p class="share-url">{{ answer_url }}</p>
 </section>
-<a href="{% url 'problem_new' %}">続けて問題を作る</a>
+
+<div class="form-section divider-top">
+  <a class="text-link" href="{% url 'problem_new' %}">続けて問題を作る ›</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/goban.js"></script>
+<script>
+(function () {
+  var box = document.querySelector(".share-buttons");
+  var url = box.dataset.shareUrl;
+  var title = box.dataset.shareTitle;
+  var text = encodeURIComponent(title + " " + url);
+  box.querySelector("[data-share='line']").href = "https://line.me/R/msg/text/?" + text;
+  box.querySelector("[data-share='x']").href = "https://twitter.com/intent/tweet?text=" + text;
+  box.querySelector("[data-share='copy']").addEventListener("click", function () {
+    if (navigator.clipboard) navigator.clipboard.writeText(url);
+    this.querySelector("[data-copy-label]").textContent = "コピーしました";
+  });
+  box.querySelector("[data-share='native']").addEventListener("click", function () {
+    if (navigator.share) navigator.share({ title: title, url: url });
+  });
+})();
+</script>
 {% endblock %}

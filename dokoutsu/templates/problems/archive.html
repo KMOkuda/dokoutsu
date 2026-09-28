@@ -1,27 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>受付終了の問題</h1>
+<h1 class="list-title">受付終了の問題</h1>
 {% if problems %}
+  <ul class="problem-list">
   {% for problem in problems %}
-    <article>
+    <li class="problem-card">
       <div class="card-row">
         <section aria-label="盤面のサムネイル" class="thumbnail" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
         <div class="card-body">
-          <h2>{{ problem.title }}</h2>
-          <p>{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }}{% else %}{{ problem.deadline|date:"n月j日 H:i" }}{% endif %} に終了</p>
-          <p>回答 {{ problem.answer_count }}</p>
-          <a href="{% url 'answer_list' pk=problem.pk %}">回答を見る</a>
+          <h2 class="card-title">{{ problem.title }}</h2>
+          <p class="card-meta">{{ problem.get_turn_display }}</p>
+          <p class="card-accent">{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }}{% else %}{{ problem.deadline|date:"n月j日 H:i" }}{% endif %} に終了</p>
         </div>
       </div>
-      <form method="post" action="{% url 'problem_delete' pk=problem.pk %}">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="archive_problems">
-        <button type="submit">削除する</button>
-      </form>
-    </article>
+      <div class="card-actions">
+        <a class="btn-count" href="{% url 'answer_list' pk=problem.pk %}"><span>回答</span><span>{{ problem.answer_count }}</span></a>
+        <span class="spacer"></span>
+        <button type="button" class="btn-icon" aria-label="その他の操作" data-sheet-trigger="actions"
+          data-title="{{ problem.title }}" data-turn-label="{{ problem.get_turn_display }}"
+          data-answer-count="{{ problem.answer_count }}" data-status="受付終了"
+          data-delete-url="{% url 'problem_delete' pk=problem.pk %}">…</button>
+        <button type="button" class="btn-icon" aria-label="シェア" data-sheet-trigger="share"
+          data-title="{{ problem.title }}" data-share-url="{{ problem.share_url }}">⤴</button>
+      </div>
+    </li>
   {% endfor %}
+  </ul>
 {% else %}
-  <p>受付終了の問題はありません。</p>
+  <div class="empty-state">
+    <p>受付終了の問題はありません。</p>
+  </div>
 {% endif %}
+{% endblock %}
+
+{% block dialogs %}
+{% include "components/problem_dialogs.html" with can_close=False next_name="archive_problems" %}
+{% endblock %}
+
+{% block scripts %}
 <script src="/static/js/goban.js"></script>
+<script src="/static/js/sheets.js"></script>
 {% endblock %}

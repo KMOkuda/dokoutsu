@@ -105,20 +105,31 @@ class E2EFlowTests(StaticLiveServerTestCase):
 
         page.goto(self._url("/problems/new"))
         page.fill("#id_title", "E2E作成テスト")
-        deadline = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")
-        page.fill("#id_deadline", deadline)
-        page.check('input[name="turn"][value="black"]')
-        page.check('input[name="disclosure_type"][value="after_answer"]')
+        deadline_date = (timezone.localtime() + timedelta(days=1)).date().isoformat()
+        page.fill("#id_deadline_date", deadline_date)
+        page.select_option("#id_deadline_hour", "18")
+        page.select_option("#id_deadline_minute", "0")
+        page.click("label.check-item:has-text('回答後に公開リンクを表示')")
+        page.click("label.toggle-item:has-text('黒番')")
+        self._shot("E2_1_problem_form")
 
-        # 盤面エディタで石を1つ配置する(交点のヒット領域をクリック)
-        page.wait_for_selector("[data-goban-editor] svg rect")
-        page.click("[data-goban-editor] svg rect")
-        self._shot("E2_1_board_with_stone")
+        # 盤面エディタの中央付近(天元)をタップして黒石を置く
+        board = page.wait_for_selector("[data-goban-editor] svg")
+        box = board.bounding_box()
+        page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.wait_for_function("document.getElementById('id_board_sgf').value !== ''")
+        board.scroll_into_view_if_needed()
+        self._shot("E2_2_board_with_stone")
 
-        page.click("button:has-text('出題する')")
+        page.click("#problem-submit")
+        page.wait_for_selector("#publish-dialog[open]")
+        self.assertIn("E2E作成テスト", page.inner_text("#publish-dialog"))
+        self._shot("E2_3_publish_confirm")
+
+        page.click("#publish-confirm")
         page.wait_for_url(re.compile(r".*/problems/.+/created"))
         self.assertIn("E2E作成テスト", page.content())
-        self._shot("E2_2_problem_created")
+        self._shot("E2_4_problem_created")
 
     # --- E3: 回答を投稿してから回答一覧を見る ---
 
@@ -136,20 +147,31 @@ class E2EFlowTests(StaticLiveServerTestCase):
 
         page = self.page
         page.goto(self._url(f"/problems/{problem.pk}/answer"))
-        page.wait_for_selector("[data-goban-answer] svg rect")
-        page.click("[data-goban-answer] svg rect")
-        self._shot("E3_1_move_selected")
+        self._shot("E3_1_answer_form")
+        self.assertTrue(page.is_disabled("#answer-submit"))
 
         page.fill("#id_nickname", "こだぬき")
         page.select_option("#id_rank", label="15級")
-        page.click("button:has-text('この一手で投稿する')")
+        page.fill("#id_body", "天元が急場")
+
+        # 盤面中央(天元)を押して離すと着手が確定し、投稿ボタンが有効になる
+        board = page.wait_for_selector("[data-goban-answer] svg")
+        box = board.bounding_box()
+        page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.mouse.down()
+        self._shot("E3_2_guide_on_press")
+        page.mouse.up()
+        page.wait_for_function("!document.getElementById('answer-submit').disabled")
+        self._shot("E3_3_move_selected")
+
+        page.click("#answer-submit")
         page.wait_for_selector("text=投稿しました")
-        self._shot("E3_2_posted")
+        self._shot("E3_4_posted")
 
         page.click("text=みんなの回答を見る")
         page.wait_for_url(re.compile(r".*/problems/[0-9a-f-]+$"))
         self.assertIn("こだぬき", page.content())
-        self._shot("E3_3_answer_list")
+        self._shot("E3_5_answer_list")
 
     # --- E4: 受付中の問題一覧で終了・削除を操作する ---
 
@@ -173,15 +195,32 @@ class E2EFlowTests(StaticLiveServerTestCase):
         self.assertIn("E4対象問題", page.content())
         self._shot("E4_1_active_list")
 
-        page.click("button:has-text('受付を終了する')")
+        page.click(".btn-icon[data-sheet-trigger='actions']")
+        page.wait_for_selector("#action-sheet[open]")
+        self._shot("E4_2_action_sheet")
+        page.click("#action-sheet >> text=出題を終了する")
+        page.wait_for_selector("#close-dialog[open]")
+        self._shot("E4_3_close_confirm")
+        page.click("#close-dialog button.confirm-primary")
         page.wait_for_url("**/problems/active")
         self.assertNotIn("E4対象問題", page.content())
+        self._shot("E4_4_active_empty")
 
         page.goto(self._url("/problems/archive"))
         self.assertIn("E4対象問題", page.content())
-        self._shot("E4_2_archive_list")
+        self._shot("E4_5_archive_list")
 
-        page.click("button:has-text('削除する')")
+        page.click("[data-sheet-trigger='share']")
+        page.wait_for_selector("#share-sheet[open]")
+        self._shot("E4_6_share_sheet")
+        page.click("#share-sheet >> text=キャンセル")
+
+        page.click(".btn-icon[data-sheet-trigger='actions']")
+        page.wait_for_selector("#action-sheet[open]")
+        page.click("#action-sheet >> text=問題を削除する")
+        page.wait_for_selector("#delete-dialog[open]")
+        self._shot("E4_7_delete_confirm")
+        page.click("#delete-dialog button.confirm-danger")
         page.wait_for_url("**/problems/archive")
         self.assertNotIn("E4対象問題", page.content())
 
@@ -204,5 +243,9 @@ class E2EFlowTests(StaticLiveServerTestCase):
         self.assertTrue(page.is_visible(".menu-list"))
         self._shot("E5_1_menu_open")
 
-        page.mouse.click(10, 700)  # メニュー外(画面下部の余白)をクリック
+        page.mouse.click(10, 400)  # ドロワー外の暗転部分をクリック
+        self.assertTrue(page.is_hidden(".menu-list"))
+
+        page.click(".menu-open")
+        page.click(".menu-close")
         self.assertTrue(page.is_hidden(".menu-list"))

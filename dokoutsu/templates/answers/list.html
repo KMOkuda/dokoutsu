@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
-<h1>着手はどこに打つべきか</h1>
+<div class="problem-heading">
+  <h1>{{ problem.title }}</h1>
+  <p class="muted">投稿者：{{ problem.author.username }}</p>
+</div>
 {% if can_view %}
-  <p>{{ problem.title }}</p>
-  <p>投稿者: {{ problem.author.username }}</p>
-  <p>手番: {{ problem.get_turn_display }}</p>
-  <section aria-label="盤面" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
+  <div class="turn-row">
+    <span class="turn-badge">{% if problem.turn == 'black' %}●{% else %}○{% endif %} {{ problem.get_turn_display }}</span>
+  </div>
+  <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}"></section>
   <section aria-label="回答一覧">
     {% if answers %}
+      <ul class="answer-list">
       {% for answer in answers %}
-        <article>
-          <p>{{ answer.nickname }}({{ answer.rank.label }})</p>
-          <section aria-label="回答の着手" data-goban-viewer data-sgf="{{ problem.board_sgf }}" data-move="{{ answer.move }}"></section>
-          {% if answer.body %}<p>{{ answer.body }}</p>{% endif %}
-        </article>
+        <li class="answer-card">
+          <section class="answer-board" aria-label="回答の着手" data-goban-viewer data-sgf="{{ problem.board_sgf }}" data-move="{{ answer.move }}" data-turn="{{ problem.turn }}"></section>
+          <div class="answer-body">
+            <p class="answer-author">{{ answer.nickname }} {{ answer.rank.label }}</p>
+            {% if answer.body %}<p class="answer-comment">{{ answer.body }}</p>{% endif %}
+          </div>
+        </li>
       {% endfor %}
+      </ul>
     {% else %}
-      <p>まだ回答がありません</p>
+      <p class="empty-state">まだ回答がありません</p>
     {% endif %}
   </section>
 {% else %}
-  <p>回答は締切後に公開されます</p>
+  <p class="empty-state">回答は締切後に公開されます</p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
 <script src="/static/js/goban.js"></script>
 {% endblock %}

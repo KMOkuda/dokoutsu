@@ -3,13 +3,25 @@
   document.addEventListener("DOMContentLoaded", function () {
     var nav = document.querySelector('nav[aria-label="共通メニュー"]');
     if (!nav) return;
-    var toggle = nav.querySelector(".menu-open");
+    var openBtn = nav.querySelector(".menu-open");
+    var closeBtn = nav.querySelector(".menu-close");
     var list = nav.querySelector(".menu-list");
-    toggle.addEventListener("click", function () {
-      list.hidden = !list.hidden;
+    var overlay = nav.querySelector(".menu-overlay");
+
+    function setOpen(open) {
+      list.hidden = !open;
+      overlay.hidden = !open;
+      openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    openBtn.addEventListener("click", function () {
+      setOpen(list.hidden);
     });
-    document.addEventListener("click", function (event) {
-      if (!nav.contains(event.target)) list.hidden = true;
+    closeBtn.addEventListener("click", function () {
+      setOpen(false);
+    });
+    overlay.addEventListener("click", function () {
+      setOpen(false);
     });
   });
 })();

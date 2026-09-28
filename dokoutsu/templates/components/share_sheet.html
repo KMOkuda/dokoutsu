@@ -1,0 +1,14 @@
+<dialog id="share-sheet" class="sheet" aria-labelledby="share-sheet-title">
+  <div class="sheet-header">
+    <p id="share-sheet-title" class="sheet-title">この問題をシェアする</p>
+    <p class="sheet-sub" data-fill="title"></p>
+  </div>
+  <div class="share-grid">
+    <a data-share="line" target="_blank" rel="noopener"><span class="share-icon share-line">LINE</span>LINE</a>
+    <a data-share="x" target="_blank" rel="noopener"><span class="share-icon share-x">X</span>X</a>
+    <a data-share="mail"><span class="share-icon share-mail">✉</span>メール</a>
+    <button type="button" data-share="copy"><span class="share-icon share-link">🔗</span><span data-copy-label>リンク</span></button>
+  </div>
+  <button type="button" class="sheet-item" data-share="native">他のアプリでシェア</button>
+  <button type="button" class="sheet-item sheet-cancel" data-dialog-cancel>キャンセル</button>
+</dialog>

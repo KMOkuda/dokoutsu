@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>確認メールを送りました</h1>
-<p>{{ email }}</p>
-<p>宛に確認メールを送信しました。メール内のリンクを開くと登録が完了します。</p>
-<form method="post">
-  {% csrf_token %}
-  <button type="submit">メールを再送する</button>
-</form>
-<a href="{% url 'login' %}">ログイン画面に戻る</a>
+<div class="form-section">
+  <h1 class="accent-title">確認メールを送りました</h1>
+  <div class="notice-box">
+    <p class="notice-strong">{{ email }}</p>
+    <p>宛に確認メールを送信しました。メール内のリンクを開くと登録が完了します。</p>
+  </div>
+  <p class="field-hint">リンクの有効期限は24時間です。届かない場合は迷惑メールフォルダをご確認ください。</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn-secondary">メールを再送する</button>
+  </form>
+  <p class="center-link"><a class="text-link" href="{% url 'login' %}">ログイン画面に戻る</a></p>
+</div>
 {% endblock %}

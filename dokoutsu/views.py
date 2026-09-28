@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, get_user_model, login as auth_logi
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Count, Q
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -34,6 +35,20 @@ def _build_reset_link(request, user):
     token = default_token_generator.make_token(user)
     path = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
     return request.build_absolute_uri(path)
+
+
+def _remaining_label(deadline):
+    """締切までの残りを「N日」(24時間以上)/「N時間」(24時間未満)で返す。"""
+    seconds = (deadline - timezone.now()).total_seconds()
+    if seconds <= 0:
+        return None
+    if seconds >= 24 * 3600:
+        return f"{int(seconds // (24 * 3600))}日"
+    return f"{max(1, int(seconds // 3600))}時間"
+
+
+def _answer_url(request, problem):
+    return request.build_absolute_uri(reverse("answer_create", kwargs={"pk": problem.pk}))
 
 
 def _decode_user(uidb64, token):
@@ -216,7 +231,7 @@ def problem_new_view(request):
             return redirect("problem_created", pk=problem.pk)
     else:
         form = ProblemForm()
-    return render(request, "problems/new.html", {"form": form})
+    return render(request, "problems/new.html", {"form": form, "show_back": True})
 
 
 @login_required
@@ -224,16 +239,14 @@ def problem_created_view(request, pk):
     problem = get_object_or_404(Problem, pk=pk)
     if problem.author_id != request.user.id:
         raise Http404
-    answer_url = request.build_absolute_uri(
-        reverse("answer_create", kwargs={"pk": problem.pk})
-    )
     return render(
         request,
         "problems/created.html",
         {
             "problem": problem,
             "answer_count": problem.answer_posts.count(),
-            "answer_url": answer_url,
+            "answer_url": _answer_url(request, problem),
+            "show_back": True,
         },
     )
 
@@ -252,7 +265,12 @@ def answer_create_view(request, pk):
             return render(
                 request,
                 "problems/answer.html",
-                {"problem": problem, "is_open": False, "form": AnswerPostForm()},
+                {
+                    "problem": problem,
+                    "is_open": False,
+                    "form": AnswerPostForm(),
+                    "show_back": True,
+                },
             )
         form = AnswerPostForm(request.POST)
         if form.is_valid():
@@ -274,8 +292,11 @@ def answer_create_view(request, pk):
             "is_open": is_open,
             "form": form,
             "posted": posted,
+            "posted_move": form.cleaned_data.get("move") if posted else "",
             "show_answer_list_link": posted
             and problem.disclosure_type == Problem.AFTER_ANSWER,
+            "remaining": _remaining_label(problem.deadline) if is_open else None,
+            "show_back": True,
         },
     )
 
@@ -302,7 +323,12 @@ def answer_list_view(request, pk):
     return render(
         request,
         "answers/list.html",
-        {"problem": problem, "can_view": can_view, "answers": answers},
+        {
+            "problem": problem,
+            "can_view": can_view,
+            "answers": answers,
+            "show_back": True,
+        },
     )
 
 
@@ -311,25 +337,32 @@ def answer_list_view(request, pk):
 
 @login_required
 def active_problems_view(request):
-    problems = (
-        Problem.objects.filter(author=request.user, closed_at__isnull=True, deadline__gt=timezone.now())
+    problems = list(
+        Problem.objects.filter(
+            author=request.user, closed_at__isnull=True, deadline__gt=timezone.now()
+        )
+        .annotate(answer_count=Count("answer_posts"))
         .order_by("deadline")
     )
     for problem in problems:
-        problem.answer_count = problem.answer_posts.count()
+        problem.remaining = _remaining_label(problem.deadline)
+        problem.share_url = _answer_url(request, problem)
     return render(request, "problems/active.html", {"problems": problems})
 
 
 @login_required
 def archive_problems_view(request):
-    from django.db.models import Q
-
-    problems = Problem.objects.filter(author=request.user).filter(
-        Q(closed_at__isnull=False) | Q(deadline__lte=timezone.now())
-    ).order_by("-deadline")
+    problems = list(
+        Problem.objects.filter(author=request.user)
+        .filter(Q(closed_at__isnull=False) | Q(deadline__lte=timezone.now()))
+        .annotate(answer_count=Count("answer_posts"))
+        .order_by("-deadline")
+    )
     for problem in problems:
-        problem.answer_count = problem.answer_posts.count()
-    return render(request, "problems/archive.html", {"problems": problems})
+        problem.share_url = _answer_url(request, problem)
+    return render(
+        request, "problems/archive.html", {"problems": problems, "show_back": True}
+    )
 
 
 @login_required
