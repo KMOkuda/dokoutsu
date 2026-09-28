@@ -1,30 +1,264 @@
+/* デザイン参考PDF(docs/design/screens_wireframe/*_design.pdf)に基づくトークン定義。
+   正確な値への調整はここを直すだけで済むようにする。 */
 :root {
   --color-primary: #1a56db;
+  --color-primary-dark: #123a99;
+  --color-text: #1a1a1a;
+  --color-muted: #6b7280;
+  --color-border: #cbd5e1;
+  --color-bg: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-danger: #dc2626;
+  --color-black-stone: #111111;
+  --color-white-stone: #ffffff;
+
+  --font-base: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-size-base: 15px;
+  --font-size-lg: 20px;
+  --font-size-sm: 13px;
+
+  --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
+  --spacing-lg: 24px;
+
+  --radius: 0;
+  --tap-size: 48px;
+  --screen-width: 430px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  font-family: sans-serif;
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg);
   margin: 0;
 }
 
+a {
+  color: var(--color-primary);
+}
+
+h1 {
+  font-size: var(--font-size-lg);
+  margin: var(--spacing-md) 0;
+}
+
+/* --- レイアウト --- */
+
 header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-primary);
   color: white;
+  font-weight: bold;
 }
 
 main {
+  max-width: var(--screen-width);
+  margin: 0 auto;
   padding: var(--spacing-md);
+  background: var(--color-surface);
+  min-height: 100vh;
 }
 
-button[type="submit"] {
+article {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+section {
+  margin-bottom: var(--spacing-md);
+}
+
+/* --- フォーム --- */
+
+form div,
+form fieldset {
+  margin-bottom: var(--spacing-md);
+  border: none;
+  padding: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+fieldset legend {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  padding: 0;
+}
+
+fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text);
+  margin-right: var(--spacing-md);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="datetime-local"],
+select,
+textarea {
+  width: 100%;
+  min-height: var(--tap-size);
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+textarea {
+  min-height: 96px;
+}
+
+button,
+input[type="submit"] {
+  display: inline-block;
+  min-height: var(--tap-size);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+button[type="submit"],
+.btn-primary {
+  width: 100%;
   background: var(--color-primary);
   color: white;
   border: none;
+  font-weight: bold;
+}
+
+button[type="submit"]:active {
+  background: var(--color-primary-dark);
+}
+
+article form {
+  margin-bottom: var(--spacing-sm);
+}
+
+article form:last-child {
+  margin-bottom: 0;
+}
+
+form[action*="delete"] button {
+  width: 100%;
+  background: var(--color-surface);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  font-weight: normal;
+}
+
+.errorlist {
+  list-style: none;
+  margin: var(--spacing-xs) 0 0;
+  padding: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+/* --- 共通メニュー --- */
+
+nav[aria-label="共通メニュー"] {
+  margin-left: auto;
+  position: relative;
+}
+
+.menu-open {
+  background: none;
+  border: none;
+  color: white;
+  font-size: var(--font-size-lg);
+  min-height: auto;
+  padding: var(--spacing-xs);
+}
+
+.menu-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--spacing-xs));
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-xs) 0;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.menu-list[hidden] {
+  display: none;
+}
+
+.menu-list li {
+  padding: 0;
+}
+
+.menu-list a,
+.menu-list button {
+  display: block;
+  width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  text-align: left;
+  background: none;
+  color: var(--color-text);
+  min-height: var(--tap-size);
+}
+
+/* --- 盤面 --- */
+
+[data-goban-editor],
+[data-goban-answer],
+[data-goban-viewer] {
+  display: block;
+  max-width: 100%;
+}
+
+[data-goban-editor] div,
+[data-goban-answer] div {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+[data-goban-editor] button,
+[data-goban-answer] button {
+  min-height: auto;
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* --- 一覧画面のカード --- */
+
+.rank-badge,
+article p {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-xs) 0;
 }
