@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>出題しました</h1>
+<p>{{ problem.deadline|date:"n月j日(D) H:i" }} まで回答を受け付けます</p>
+<article>
+  <h2>{{ problem.title }}</h2>
+  <p>回答 {{ answer_count }}件</p>
+</article>
+<section>
+  <h2>友達に問題をシェアする</h2>
+  <p><a href="{{ answer_url }}">{{ answer_url }}</a></p>
+</section>
+<a href="{% url 'problem_new' %}">続けて問題を作る</a>
+{% endblock %}

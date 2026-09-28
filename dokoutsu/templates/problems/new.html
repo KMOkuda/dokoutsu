@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>新しく問題を作る</h1>
+<form method="post" id="problem-form" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div>
+    <label for="{{ form.title.id_for_label }}">問題のタイトル</label>
+    {{ form.title }}
+    {{ form.title.errors }}
+  </div>
+  <div>
+    <label for="{{ form.deadline.id_for_label }}">出題の締切</label>
+    {{ form.deadline }}
+    {{ form.deadline.errors }}
+  </div>
+  <fieldset>
+    <legend>回答する手番</legend>
+    {{ form.turn }}
+  </fieldset>
+  <fieldset>
+    <legend>回答公開</legend>
+    {{ form.disclosure_type }}
+  </fieldset>
+  {{ form.board_sgf }}
+  {{ form.board_sgf.errors }}
+  <section aria-label="盤面エディタ" data-goban-editor data-goban-target="id_board_sgf"></section>
+  <button type="submit">出題する</button>
+</form>
+<script src="/static/js/goban.js"></script>
+{% endblock %}

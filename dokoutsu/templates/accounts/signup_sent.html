@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>確認メールを送りました</h1>
+<p>{{ email }}</p>
+<p>宛に確認メールを送信しました。メール内のリンクを開くと登録が完了します。</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">メールを再送する</button>
+</form>
+<a href="{% url 'login' %}">ログイン画面に戻る</a>
+{% endblock %}

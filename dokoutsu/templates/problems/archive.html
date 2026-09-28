@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>受付終了の問題</h1>
+{% if problems %}
+  {% for problem in problems %}
+    <article>
+      <h2>{{ problem.title }}</h2>
+      <p>{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }}{% else %}{{ problem.deadline|date:"n月j日 H:i" }}{% endif %} に終了</p>
+      <p>回答 {{ problem.answer_count }}</p>
+      <a href="{% url 'answer_list' pk=problem.pk %}">回答を見る</a>
+      <form method="post" action="{% url 'problem_delete' pk=problem.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="archive_problems">
+        <button type="submit">削除する</button>
+      </form>
+    </article>
+  {% endfor %}
+{% else %}
+  <p>受付終了の問題はありません。</p>
+{% endif %}
+{% endblock %}

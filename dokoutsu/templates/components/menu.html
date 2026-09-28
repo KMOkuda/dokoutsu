@@ -1,0 +1,14 @@
+<nav aria-label="共通メニュー">
+  <button type="button" class="menu-open" aria-haspopup="true">☰</button>
+  <ul class="menu-list" hidden>
+    <li><a href="{% url 'problem_new' %}">新しく問題を作る</a></li>
+    <li><a href="{% url 'active_problems' %}">受付中の問題を見る</a></li>
+    <li><a href="{% url 'archive_problems' %}">受付終了の問題を見る</a></li>
+    <li>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">ログアウト</button>
+      </form>
+    </li>
+  </ul>
+</nav>

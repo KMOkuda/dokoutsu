@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+<h1>着手はどこに打つべきか</h1>
+<p>問題: {{ problem.title }}</p>
+<p>手番: {{ problem.get_turn_display }}</p>
+
+{% if posted %}
+  <section aria-label="盤面" data-goban-viewer data-sgf="{{ problem.board_sgf }}" data-move="{{ form.instance.move }}"></section>
+  <p>投稿しました！</p>
+  {% if show_answer_list_link %}
+    <a href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
+  {% else %}
+    <p>締切後にシェアされます。</p>
+  {% endif %}
+{% elif not is_open %}
+  <section aria-label="盤面" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
+  <p>締切を過ぎました</p>
+  <a href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
+{% else %}
+  <p>締切まであと少し</p>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <section
+      aria-label="盤面"
+      data-goban-answer
+      data-sgf="{{ problem.board_sgf }}"
+      data-turn="{{ problem.turn }}"
+      data-goban-target="{{ form.move.id_for_label }}"
+    ></section>
+    <div>
+      <label for="{{ form.nickname.id_for_label }}">ニックネーム</label>
+      {{ form.nickname }}
+      {{ form.nickname.errors }}
+    </div>
+    <div>
+      <label for="{{ form.rank.id_for_label }}">棋力</label>
+      {{ form.rank }}
+      {{ form.rank.errors }}
+    </div>
+    {{ form.move }}
+    {{ form.move.errors }}
+    <div>
+      <label for="{{ form.body.id_for_label }}">コメント</label>
+      {{ form.body }}
+    </div>
+    <button type="submit">この一手で投稿する</button>
+  </form>
+{% endif %}
+<script src="/static/js/goban.js"></script>
+{% endblock %}

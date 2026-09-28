@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% block robots %}{% endblock %}
+<title>どこ打つくん</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header>
+  {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'signup' and request.resolver_match.url_name != 'password_reset' %}
+    {% if user.is_authenticated %}{% include "components/menu.html" %}{% endif %}
+  {% endif %}
+  <span>どこ打つくん</span>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

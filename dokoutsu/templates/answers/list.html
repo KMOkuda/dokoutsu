@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+<h1>着手はどこに打つべきか</h1>
+{% if can_view %}
+  <p>{{ problem.title }}</p>
+  <p>投稿者: {{ problem.author.username }}</p>
+  <p>手番: {{ problem.get_turn_display }}</p>
+  <section aria-label="盤面" data-goban-viewer data-sgf="{{ problem.board_sgf }}"></section>
+  <section aria-label="回答一覧">
+    {% if answers %}
+      {% for answer in answers %}
+        <article>
+          <p>{{ answer.nickname }}({{ answer.rank.label }})</p>
+          <section aria-label="回答の着手" data-goban-viewer data-sgf="{{ problem.board_sgf }}" data-move="{{ answer.move }}"></section>
+          {% if answer.body %}<p>{{ answer.body }}</p>{% endif %}
+        </article>
+      {% endfor %}
+    {% else %}
+      <p>まだ回答がありません</p>
+    {% endif %}
+  </section>
+{% else %}
+  <p>回答は締切後に公開されます</p>
+{% endif %}
+<script src="/static/js/goban.js"></script>
+{% endblock %}

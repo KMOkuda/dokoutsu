@@ -1,0 +1,30 @@
+:root {
+  --color-primary: #1a56db;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: white;
+}
+
+main {
+  padding: var(--spacing-md);
+}
+
+button[type="submit"] {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>受付中の問題</h1>
+{% if problems %}
+  {% for problem in problems %}
+    <article>
+      <h2>{{ problem.title }}</h2>
+      <p>{{ problem.deadline|date:"n月j日 H:i" }}まで</p>
+      <p>回答 {{ problem.answer_count }}</p>
+      <a href="{% url 'answer_list' pk=problem.pk %}">回答を見る</a>
+      <form method="post" action="{% url 'problem_close' pk=problem.pk %}">
+        {% csrf_token %}
+        <button type="submit">受付を終了する</button>
+      </form>
+      <form method="post" action="{% url 'problem_delete' pk=problem.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="active_problems">
+        <button type="submit">削除する</button>
+      </form>
+    </article>
+  {% endfor %}
+{% else %}
+  <p>受付中の問題はありません。</p>
+  <a href="{% url 'problem_new' %}">新しく問題を作る</a>
+  <a href="{% url 'archive_problems' %}">受付終了の問題を見る</a>
+{% endif %}
+{% endblock %}

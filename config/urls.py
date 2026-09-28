@@ -1,11 +1,7 @@
-from django.http import HttpResponse
-from django.urls import path
-
-
-def deploy_check(request):
-    return HttpResponse("dokoutsu: Railway deploy test OK")
-
+from django.contrib import admin
+from django.urls import include, path
 
 urlpatterns = [
-    path("", deploy_check),
+    path("admin/", admin.site.urls),
+    path("", include("dokoutsu.urls")),
 ]
