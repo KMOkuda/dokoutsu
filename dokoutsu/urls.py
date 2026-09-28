@@ -1,8 +1,10 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import views
 
 urlpatterns = [
+    path("", RedirectView.as_view(pattern_name="active_problems"), name="home"),
     path("signup", views.signup_view, name="signup"),
     path("signup/sent", views.signup_sent_view, name="signup_sent"),
     path("signup/activate/<uidb64>/<token>/", views.activate_view, name="activate"),
