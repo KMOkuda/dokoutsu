@@ -9,9 +9,7 @@
 </head>
 <body>
 <header>
-  {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'signup' and request.resolver_match.url_name != 'password_reset' %}
-    {% if user.is_authenticated %}{% include "components/menu.html" %}{% endif %}
-  {% endif %}
+  {% if user.is_authenticated and not hide_menu %}{% include "components/menu.html" %}{% endif %}
   <span>どこ打つくん</span>
 </header>
 <main>

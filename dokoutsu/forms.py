@@ -7,8 +7,11 @@ from .models import AnswerPost, Problem, Rank
 User = get_user_model()
 
 
+EMAIL_INVALID_MESSAGE = {"invalid": "正しいメールアドレスを入力してください"}
+
+
 class SignupForm(forms.Form):
-    email = forms.EmailField(max_length=254)
+    email = forms.EmailField(max_length=254, error_messages=EMAIL_INVALID_MESSAGE)
     username = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput, min_length=8)
 
@@ -49,7 +52,7 @@ class LoginForm(forms.Form):
 
 
 class PasswordResetRequestForm(forms.Form):
-    email = forms.EmailField(max_length=254)
+    email = forms.EmailField(max_length=254, error_messages=EMAIL_INVALID_MESSAGE)
 
 
 class PasswordResetConfirmForm(forms.Form):
@@ -67,11 +70,12 @@ class PasswordResetConfirmForm(forms.Form):
 
 
 class ProblemForm(forms.ModelForm):
+    board_sgf = forms.CharField(required=False, widget=forms.HiddenInput())
+
     class Meta:
         model = Problem
         fields = ["title", "deadline", "disclosure_type", "turn", "board_sgf"]
         widgets = {
-            "board_sgf": forms.HiddenInput(),
             "deadline": forms.DateTimeInput(attrs={"type": "datetime-local"}),
             "turn": forms.RadioSelect(),
             "disclosure_type": forms.RadioSelect(),
@@ -94,11 +98,11 @@ class ProblemForm(forms.ModelForm):
 
 class AnswerPostForm(forms.ModelForm):
     rank = forms.ModelChoiceField(queryset=Rank.objects.all(), empty_label="選択してください")
+    move = forms.CharField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = AnswerPost
         fields = ["nickname", "rank", "move", "body"]
-        widgets = {"move": forms.HiddenInput()}
 
     def clean_move(self):
         move = self.cleaned_data["move"]

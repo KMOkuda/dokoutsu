@@ -51,6 +51,8 @@ def _decode_user(uidb64, token):
 
 
 def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect("active_problems")
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
@@ -66,7 +68,7 @@ def signup_view(request):
             return redirect("signup_sent")
     else:
         form = SignupForm()
-    return render(request, "accounts/signup.html", {"form": form})
+    return render(request, "accounts/signup.html", {"form": form, "hide_menu": True})
 
 
 def signup_sent_view(request):
@@ -83,7 +85,9 @@ def signup_sent_view(request):
                 None,
                 [user.email],
             )
-    return render(request, "accounts/signup_sent.html", {"email": email})
+    return render(
+        request, "accounts/signup_sent.html", {"email": email, "hide_menu": True}
+    )
 
 
 def activate_view(request, uidb64, token):
@@ -92,6 +96,7 @@ def activate_view(request, uidb64, token):
         return render(request, "accounts/login.html", {
             "form": LoginForm(),
             "activation_error": "リンクの有効期限が切れています",
+            "hide_menu": True,
         })
     user.is_active = True
     user.save(update_fields=["is_active"])
@@ -102,6 +107,8 @@ def activate_view(request, uidb64, token):
 
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("active_problems")
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -131,7 +138,9 @@ def login_view(request):
             form.add_error(None, error)
     else:
         form = LoginForm()
-    return render(request, "accounts/login.html", {"form": form})
+    return render(
+        request, "accounts/login.html", {"form": form, "hide_menu": True}
+    )
 
 
 def logout_view(request):
@@ -143,6 +152,8 @@ def logout_view(request):
 
 
 def password_reset_view(request):
+    if request.user.is_authenticated:
+        return redirect("active_problems")
     sent_email = request.session.get("password_reset_email")
     if request.method == "POST":
         form = PasswordResetRequestForm(request.POST)
@@ -164,7 +175,7 @@ def password_reset_view(request):
     return render(
         request,
         "accounts/password_reset.html",
-        {"form": form, "sent_email": sent_email},
+        {"form": form, "sent_email": sent_email, "hide_menu": True},
     )
 
 
@@ -173,6 +184,7 @@ def password_reset_confirm_view(request, uidb64, token):
     if user is None:
         return render(request, "accounts/password_reset_confirm.html", {
             "invalid": True,
+            "hide_menu": True,
         })
     success = False
     if request.method == "POST":
@@ -186,7 +198,7 @@ def password_reset_confirm_view(request, uidb64, token):
     return render(
         request,
         "accounts/password_reset_confirm.html",
-        {"form": form, "success": success},
+        {"form": form, "success": success, "hide_menu": True},
     )
 
 
