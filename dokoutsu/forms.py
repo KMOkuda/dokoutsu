@@ -4,6 +4,7 @@ import re
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils import timezone
 
 from .models import AnswerPost, Problem, Rank
@@ -60,9 +61,12 @@ class SignupForm(forms.Form):
         widget=forms.PasswordInput(attrs=_placeholder("8文字以上の英数字")),
     )
 
+    # メールアドレス・IDの重複は、確認済み(is_active=True)のアカウントとだけ比べる。
+    # 確認メールのリンクを開かずに期限が切れた人が、同じメールアドレス・IDで登録し直せるようにするため
+    # (詳細設計書 3a「7. この画面固有の設計事項」)
     def clean_email(self):
         email = self.cleaned_data["email"]
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=email, is_active=True).exists():
             raise ValidationError("このメールアドレスは既に登録されています")
         return email
 
@@ -70,7 +74,7 @@ class SignupForm(forms.Form):
         username = self.cleaned_data["username"]
         if not USERNAME_PATTERN.fullmatch(username):
             raise ValidationError("IDは半角英数字で入力してください")
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username=username, is_active=True).exists():
             raise ValidationError("このIDは既に使用されています")
         return username
 
@@ -81,6 +85,11 @@ class SignupForm(forms.Form):
         return password
 
     def save(self):
+        # 同じメールアドレスまたはIDの未確認アカウントは、新しい登録で置き換える。
+        # 前の確認リンクは、対象のアカウントがなくなるため使えなくなる
+        User.objects.filter(is_active=False).filter(
+            Q(email=self.cleaned_data["email"]) | Q(username=self.cleaned_data["username"])
+        ).delete()
         user = User.objects.create_user(
             username=self.cleaned_data["username"],
             email=self.cleaned_data["email"],

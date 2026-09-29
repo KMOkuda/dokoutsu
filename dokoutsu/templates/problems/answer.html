@@ -37,7 +37,7 @@
 {% elif not is_open %}
   <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}"></section>
   <div class="bottom-actions">
-    <p class="muted">回答の受付は終了しています。</p>
+    <p class="muted">受付は終了しています</p>
     <a class="btn-primary" href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
   </div>
 {% else %}
@@ -69,7 +69,7 @@
       data-goban-target="{{ form.move.id_for_label }}"
       data-goban-submit="answer-submit"
     ></section>
-    <p class="hint">指を離すと着手します。</p>
+    <p class="hint">指を離すと着手します。投稿するまでは別の交点を押して選び直せます。</p>
     {{ form.move }}
     <div class="field">
       {{ form.body }}

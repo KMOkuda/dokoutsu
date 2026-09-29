@@ -95,7 +95,7 @@ Djangoの標準認証機能が自動生成するテーブル。独自の拡張�
 | id | UUID | NOT NULL | - | 主キー |
 | author_id | INTEGER | NOT NULL | - | 出題者。auth_user への外部キー。ON DELETE CASCADE |
 | title | VARCHAR(100) | NOT NULL | - | 問題のタイトル |
-| board_sgf | TEXT | NOT NULL | - | 局面データ。SGF形式 |
+| board_sgf | TEXT | NOT NULL | - | 局面データ。SGF形式で「AB[黒石の座標]…AW[白石の座標]…」の形とし、座標は列・行をa〜sの1文字ずつで表す。形式はアプリ側で検証する(詳細設計書 4a「5. エラーケース」) |
 | turn | VARCHAR(5) | NOT NULL | - | 回答する手番。`black` / `white` |
 | deadline | TIMESTAMP | NOT NULL | - | 回答の締切日時 |
 | disclosure_type | VARCHAR(20) | NOT NULL | - | 公開方式。`after_deadline` / `after_answer` |
@@ -115,7 +115,7 @@ Djangoの標準認証機能が自動生成するテーブル。独自の拡張�
 | nickname | VARCHAR(20) | NOT NULL | - | ニックネーム |
 | rank_id | INTEGER | NOT NULL | - | 棋力。dokoutsu_rank への外部キー。ON DELETE RESTRICT(棋力の選択肢は運用中に削除しない) |
 | move | TEXT | NOT NULL | - | 着手。SGF形式。現時点では1手分の座標(例: `pd`)のみを格納するが、将来の複数手対応(`docs/not_doing.md`参照)を見据え、桁数を制限しない |
-| body | TEXT | NULL | NULL | コメント本文 |
+| body | TEXT | NULL | NULL | コメント本文。文字数はアプリ側で200文字までに制限する(詳細設計書 2a) |
 | created_at | TIMESTAMP | NOT NULL | - | 投稿日時 |
 
 ### 2.4 dokoutsu_rank(棋力)

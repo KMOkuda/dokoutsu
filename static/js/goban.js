@@ -331,14 +331,14 @@
     var guide = null;
     var svg = makeSvg();
 
+    // 投稿するまでは、別の交点を押し直して着手を選び直せる(詳細設計書 2a「4.1 UI要素の動作」)
     function onPress(x, y) {
-      if (picked) return;
       guide = [x, y];
       draw();
     }
 
     function onRelease(x, y) {
-      if (picked) return;
+      // 選び直しでも出題時の局面(base)に置き直す。置けない交点なら前の着手を残す
       var result = placeStone(base, x, y, color);
       guide = null;
       if (!result.ok) {

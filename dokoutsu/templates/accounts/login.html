@@ -2,7 +2,7 @@
 {% block content %}
 <div class="form-section">
   <h1 class="accent-title">ログイン</h1>
-  {% if activation_error %}<p class="errorlist" role="alert">{{ activation_error }}</p>{% endif %}
+  {% if activation_error %}<p class="errorlist" role="alert">{{ activation_error }} <a class="text-link" href="{% url 'signup' %}">新規登録はこちら</a></p>{% endif %}
   <form method="post" data-required-fields="login_id password" novalidate>
     {% csrf_token %}
     {{ form.non_field_errors }}

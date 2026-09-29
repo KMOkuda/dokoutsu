@@ -126,7 +126,7 @@ def activate_view(request, token):
     if user is None:
         return render(request, "accounts/login.html", {
             "form": LoginForm(),
-            "activation_error": "リンクの有効期限が切れています",
+            "activation_error": "リンクの有効期限が切れています。お手数ですが、もう一度新規登録を行ってください。",
             "hide_menu": True,
         })
     user.is_active = True

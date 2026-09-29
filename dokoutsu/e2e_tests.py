@@ -183,6 +183,14 @@ class E2EFlowTests(StaticLiveServerTestCase):
         self._shot("E3_2_guide_on_press")
         page.mouse.up()
         page.wait_for_function("!document.getElementById('answer-submit').disabled")
+        first_move = page.input_value("#id_move")
+
+        # 投稿前なら別の交点を押して選び直せる。最後に選んだ着手が送信される
+        cell = box["width"] / 20
+        page.mouse.click(box["x"] + box["width"] / 2 + cell * 2, box["y"] + box["height"] / 2)
+        self.assertNotEqual(page.input_value("#id_move"), first_move)
+        page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        self.assertEqual(page.input_value("#id_move"), first_move)
         self._shot("E3_3_move_selected")
 
         page.click("#answer-submit")

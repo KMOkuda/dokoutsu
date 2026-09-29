@@ -30,13 +30,16 @@ pushしてから実際にアプリが動くまで、上記の6段階を経る。
 | `Procfile` | コンテナ起動時に実行するコマンドを定義する |
 | `.gitignore` | `__pycache__`、`db.sqlite3`、`.env`等を除外する |
 | `config/settings.py`の`DATABASES`設定 | `DATABASE_URL`があればPostgreSQLに、無ければSQLiteに接続する(`dj-database-url`使用) |
+| `config/settings.py`の本番用設定 | Railway上(環境変数`RAILWAY_ENVIRONMENT_NAME`がある)では`DEBUG`を既定でオフにし、`SECRET_KEY`が未設定なら起動を止める。httpsを手前で終端するRailwayの構成に合わせ、`SECURE_PROXY_SSL_HEADER`と`CSRF_TRUSTED_ORIGINS`を設定する |
+| WhiteNoise(`requirements.txt`・`settings.py`) | gunicornはCSS・JavaScriptを配信しないため、アプリ側で配信する |
 
 ### Procfileの中身
 
 ```
-web: python manage.py migrate && gunicorn config.wsgi --bind 0.0.0.0:$PORT
+web: python manage.py collectstatic --noinput && python manage.py migrate && gunicorn config.wsgi --bind 0.0.0.0:$PORT
 ```
 
+- `python manage.py collectstatic --noinput` — CSS・JavaScriptなどの静的ファイルを1か所(`staticfiles/`)に集め、WhiteNoiseが配信できるようにする
 - `python manage.py migrate` — DBのテーブルを作成・更新する
 - `&&` — 前のコマンドが成功したら次を実行する
 - `gunicorn config.wsgi --bind 0.0.0.0:$PORT` — 本番用のWebサーバーでアプリを起動する。`$PORT`はRailwayが自動で割り当てる環境変数
@@ -72,7 +75,22 @@ web: python manage.py migrate && gunicorn config.wsgi --bind 0.0.0.0:$PORT
 1. `dokoutsu`サービス → `Settings` → `Networking` → **「Generate Domain」**
 2. `https://dokoutsu-production.up.railway.app` が発行された
 
-### 3.5 Custom Start Command欄は空のままにする
+### 3.5 環境変数(Variables)の設定
+
+`dokoutsu`サービスの`Variables`タブで、`DATABASE_URL`に加えて以下を設定する。
+
+| 変数 | 値 | 理由 |
+|---|---|---|
+| `DEBUG` | `false` | エラー時に内部情報(設定値・ソースの一部)を画面に出さないため |
+| `SECRET_KEY` | 推測できない長いランダム文字列 | ログイン状態の検証や、登録確認・パスワード再発行リンクの署名に使う。チャット等に貼らない。漏れた場合は作り直す |
+
+変数を追加・変更すると「Apply N changes」「Deploy」が画面左下に表示され、**押すまで反映されない**(反映待ちの行は紫色になる)。
+
+### 3.6 デプロイ対象ブランチの接続
+
+`Settings` → `Source` → 「Branch connected to production」で`main`を接続し、「Auto deploys when pushed to GitHub」が有効になっていることを確認する。未接続だと、pushしても自動デプロイされない。
+
+### 3.7 Custom Start Command欄は空のままにする
 
 Railwayのサービス設定には`Custom Start Command`という欄があるが、ここに入力すると`Procfile`より優先されてしまう。今回誤って`Procfile`と同じ内容を直接入力していたが、欄を空にして保存し直し、`Procfile`側に一本化した。
 
@@ -86,6 +104,11 @@ Railwayのサービス設定には`Custom Start Command`という欄があるが
 | 「Domains and TCP proxy details could not be loaded」 | Railwayダッシュボードの一時的な表示不具合(推定) | Deploymentsタブでステータスが成功していれば実害なしと判断 |
 | migrateのログは成功しているのにPostgresにテーブルが無い | `DATABASE_URL`がアプリ側サービスに渡っておらず、SQLiteにフォールバックしていた | `Variables`タブで`DATABASE_URL`をPostgresサービス参照で明示的に追加 |
 | Custom Start CommandとProcfileの内容が同じで混乱 | Custom Start Command欄に直接同じコマンドを入力していた(Procfileより優先されてしまう設定) | Custom Start Command欄を空にして保存し直し、Procfileに一本化 |
+| 本番でCSS・JavaScriptが読み込まれず、画面が崩れる(404) | gunicornは静的ファイルを配信しない。開発用サーバー(runserver)でしか配信されていなかった | WhiteNoiseを導入し、Procfileで`collectstatic`を実行 |
+| 「環境変数 SECRET_KEY が設定されていません」で起動に失敗(Crashed) | Variablesに追加した変数が「反映待ち」のまま、デプロイに渡っていなかった | 画面左下の「Apply changes」→「Deploy」で反映し、Crashedのデプロイは「⋮」→「Redeploy」で再実行 |
+| pushしても自動デプロイされない | 「Branch connected to production」にブランチが接続されていなかった | `main`を接続(3.6) |
+| 公開URLのトップ(`/`)がNot Found | トップページのURLが設計・実装されていなかった | `/`を受付中の問題一覧へリダイレクトする設定を追加(基本設計書「2.1 画面一覧」) |
+| (予防)ログイン等のフォーム送信が403になるおそれ | Railwayはhttpsを手前で終端し、アプリへはhttpで渡すため、CSRF検証で送信元が一致しない | `SECURE_PROXY_SSL_HEADER`と`CSRF_TRUSTED_ORIGINS`を設定 |
 
 ---
 
@@ -106,9 +129,10 @@ Railwayのサービス設定には`Custom Start Command`という欄があるが
 
 ## 6. 現在の状態
 
-- `dokoutsu`リポジトリ: 最小限のDjangoプロジェクト構成(`smoketest`は削除済み)
-- Railway: `dokoutsu`(アプリ)と`Postgres`の2サービスが同一Project内で稼働中、`DATABASE_URL`紐付け済み
-- 公開URL: `https://dokoutsu-production.up.railway.app`(動作確認用の表示のみ、本実装はこれから)
+- `dokoutsu`リポジトリ: 詳細設計済みの9画面を実装済み。`main`へのpushで自動デプロイされる
+- Railway: `dokoutsu`(アプリ)と`Postgres`の2サービスが同一Project内で稼働中。`DATABASE_URL`・`DEBUG`・`SECRET_KEY`を設定済み
+- 公開URL: `https://dokoutsu-production.up.railway.app`
+- 未対応: メール送信。現在は実際には送信せず、本文をデプロイログに出力している(`EMAIL_BACKEND`が既定のconsole)。登録確認・パスワード再発行のリンクはDeploy Logsから取り出す。Amazon SESの設定は未着手
 
 ---
 

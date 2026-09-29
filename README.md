@@ -27,11 +27,19 @@
 
 ## 現状
 
-要件定義・基本設計・テーブル定義・画面ごとの詳細設計(9画面)は作成済み。実装はこれから。
-進め方はCLAUDE.mdの「作業ワークフロー」に従う。
+要件定義・基本設計・テーブル定義・画面ごとの詳細設計(9画面)・実装・テスト仕様書・テストは作成済み。
+Railwayで公開中(`docs/railway_deploy_guide.md`)。進め方はCLAUDE.mdの「作業ワークフロー」に従う。
+
+## テストの実行
+
+```
+python3 manage.py test dokoutsu            # サーバー側のテスト
+python3 manage.py test dokoutsu.e2e_tests  # 画面操作のE2Eテスト(Playwright + Chromium が必要)
+```
+
+E2Eテストの内容は`docs/test/e2e_flows.md`、実行時のスクリーンショットは`docs/test/screenshots/`。
 
 ## 未着手・未作成
 
-- 画面ごとのテスト仕様書
-- 開発環境のセットアップ
-- 実装(モデル・ビュー・テンプレートの本実装)
+- メール送信(Amazon SES)の設定。現在はメールを送らず、本文をログに出力している
+- コーディング規約に沿った整理(ファイルの分割など)
