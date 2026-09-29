@@ -23,6 +23,17 @@ def _uid_token(user):
 # --- 3a 新規登録画面 (docs/test/3a_新規登録画面.md) ---
 
 
+def _activation_path_from_mail():
+    """直近に送った登録確認メールの本文から、確認リンクのパス部分を取り出す。"""
+    import re
+    from urllib.parse import urlparse
+
+    from django.core import mail
+
+    url = re.search(r"https?://\S+", mail.outbox[-1].body).group(0)
+    return urlparse(url).path
+
+
 class SignupTests(TestCase):
     def test_signup_creates_inactive_user_and_sends_mail(self):
         response = self.client.post(
@@ -41,10 +52,7 @@ class SignupTests(TestCase):
             {"email": "d@example.com", "username": "dave", "password": "pass1234"},
         )
         user = User.objects.get(email="d@example.com")
-        uidb64, token = _uid_token(user)
-        response = self.client.get(
-            reverse("activate", kwargs={"uidb64": uidb64, "token": token})
-        )
+        response = self.client.get(_activation_path_from_mail())
         self.assertRedirects(response, reverse("login"))
         user.refresh_from_db()
         self.assertTrue(user.is_active)
@@ -99,13 +107,47 @@ class SignupTests(TestCase):
         user = User.objects.create_user(
             username="target", email="target@example.com", password="pass1234", is_active=False
         )
-        uidb64, _ = _uid_token(user)
-        response = self.client.get(
-            reverse("activate", kwargs={"uidb64": uidb64, "token": "bad-token"})
+        # 他人のユーザーIDに書き換えたトークンは、封印が合わないため受け付けない
+        from django.core import signing
+
+        other = User.objects.create_user(
+            username="other", email="other@example.com", password="pass1234", is_active=False
         )
-        self.assertContains(response, "リンクの有効期限が切れています")
+        signed_for_other = signing.TimestampSigner(salt="dokoutsu.signup.activation").sign(str(other.pk))
+        forged = f"{user.pk}:" + signed_for_other.split(":", 1)[1]
+        self.assertNotEqual(user.pk, other.pk)
+        for token in ("bad-token", forged):
+            with self.subTest(token=token):
+                response = self.client.get(reverse("activate", kwargs={"token": token}))
+                self.assertContains(response, "リンクの有効期限が切れています")
         user.refresh_from_db()
         self.assertFalse(user.is_active)
+
+    def test_activation_link_valid_within_24_hours(self):
+        import time
+
+        self.client.post(
+            reverse("signup"),
+            {"email": "e24@example.com", "username": "e24", "password": "pass1234"},
+        )
+        path = _activation_path_from_mail()
+        with mock.patch("django.core.signing.time.time", return_value=time.time() + 60 * 60 * 24 - 60):
+            response = self.client.get(path)
+        self.assertRedirects(response, reverse("login"))
+        self.assertTrue(User.objects.get(username="e24").is_active)
+
+    def test_activation_link_expires_after_24_hours(self):
+        import time
+
+        self.client.post(
+            reverse("signup"),
+            {"email": "x24@example.com", "username": "x24", "password": "pass1234"},
+        )
+        path = _activation_path_from_mail()
+        with mock.patch("django.core.signing.time.time", return_value=time.time() + 60 * 60 * 24 + 60):
+            response = self.client.get(path)
+        self.assertContains(response, "リンクの有効期限が切れています")
+        self.assertFalse(User.objects.get(username="x24").is_active)
 
 
 # --- 3b ログイン画面 (docs/test/3b_ログイン画面.md) ---
@@ -898,3 +940,31 @@ class RankCategoryTests(TestCase):
         self.assertContains(response, 'data-rank-category="dan"')
         self.assertContains(response, 'data-category="kyu"', count=Rank.objects.filter(category=Rank.KYU).count())
         self.assertContains(response, 'data-category="dan"', count=Rank.objects.filter(category=Rank.DAN).count())
+
+
+class PasswordResetTimeoutTests(TestCase):
+    """パスワード再発行リンクの有効期限は60分(詳細設計書 6a、settings.PASSWORD_RESET_TIMEOUT)。"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="to", email="to@example.com", password="pass1234")
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        self.path = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
+
+    def _get_after(self, minutes):
+        import datetime
+
+        from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+        later = datetime.datetime.now() + datetime.timedelta(minutes=minutes)
+        with mock.patch.object(PasswordResetTokenGenerator, "_now", return_value=later):
+            return self.client.get(self.path)
+
+    def test_valid_within_60_minutes(self):
+        response = self._get_after(59)
+        self.assertContains(response, "新しいパスワード")
+        self.assertNotContains(response, "このリンクは無効です")
+
+    def test_invalid_after_60_minutes(self):
+        response = self._get_after(61)
+        self.assertContains(response, "このリンクは無効です")

@@ -96,6 +96,9 @@ STORAGES = {
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# パスワード再発行リンクの有効期限(秒)。詳細設計書 6a では60分
+PASSWORD_RESET_TIMEOUT = 60 * 60
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "active_problems"
 

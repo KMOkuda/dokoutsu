@@ -339,3 +339,40 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page.wait_for_selector(".errorlist")
         self.assertIn("締切は現在より後の日時を指定してください", page.inner_text("#problem-form"))
         self._shot("E6_3_problem_past_deadline")
+
+    # --- E7: パスワード再発行(送信ボタンの活性条件を含む) ---
+
+    def test_password_reset_flow(self):
+        User.objects.create_user(
+            username="e2ereset", email="reset@example.com",
+            password="oldpass123", is_active=True,
+        )
+        page = self.page
+
+        page.goto(self._url("/password_reset"))
+        self.assertTrue(page.is_disabled("button:has-text('再設定リンクを送る')"))
+        page.fill("#id_email", "reset@example.com")
+        self.assertTrue(page.is_enabled("button:has-text('再設定リンクを送る')"))
+        page.click("button:has-text('再設定リンクを送る')")
+        page.wait_for_selector("text=メールを送りました")
+        self._shot("E7_1_reset_sent")
+
+        self.assertEqual(len(mail.outbox), 1)
+        page.goto(self._extract_link(mail.outbox[0].body))
+        submit = "button:has-text('パスワードを変更する')"
+        self.assertTrue(page.is_disabled(submit))
+        page.fill("#id_new_password", "newpass123")
+        self.assertTrue(page.is_disabled(submit))
+        page.fill("#id_new_password_confirm", "newpass123")
+        self.assertTrue(page.is_enabled(submit))
+        self._shot("E7_2_new_password_form")
+        page.click(submit)
+        page.wait_for_selector("text=変更しました")
+        self._shot("E7_3_changed")
+
+        page.click("text=ログインする")
+        page.wait_for_url("**/login")
+        page.fill("#id_login_id", "e2ereset")
+        page.fill("#id_password", "newpass123")
+        page.click("button:has-text('ログイン')")
+        page.wait_for_url("**/problems/active")

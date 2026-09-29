@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, get_user_model, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
+from django.core import signing
 from django.core.mail import send_mail
 from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
@@ -23,11 +24,18 @@ from .models import AnswerPost, Problem
 
 User = get_user_model()
 
+# 登録確認リンクは、Djangoの署名の仕組み(TimestampSigner)で作る。ユーザーIDに発行時刻と、SECRET_KEYを
+# 使った封印を付けたもので、封印が合わない(書き換えられた)ものや期限切れのものは受け付けない。
+# パスワード再発行用のトークンは有効期限をサイト全体で1つしか持てない(settings.PASSWORD_RESET_TIMEOUT)ため、
+# 有効期限の異なる登録確認には使わない(詳細設計書 3a「7. この画面固有の設計事項」)。
+# saltは用途ごとに封印の種類を分けるための文字列で、他の用途で署名した値を登録確認に流用させない。
+ACTIVATION_SALT = "dokoutsu.signup.activation"
+ACTIVATION_MAX_AGE = 60 * 60 * 24
+
 
 def _build_activation_link(request, user):
-    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
-    path = reverse("activate", kwargs={"uidb64": uidb64, "token": token})
+    token = signing.TimestampSigner(salt=ACTIVATION_SALT).sign(str(user.pk))
+    path = reverse("activate", kwargs={"token": token})
     return request.build_absolute_uri(path)
 
 
@@ -106,8 +114,15 @@ def signup_sent_view(request):
     )
 
 
-def activate_view(request, uidb64, token):
-    user = _decode_user(uidb64, token)
+def activate_view(request, token):
+    try:
+        user_pk = signing.TimestampSigner(salt=ACTIVATION_SALT).unsign(
+            token, max_age=ACTIVATION_MAX_AGE
+        )
+        user = User.objects.get(pk=user_pk)
+    # 期限切れ(SignatureExpired)は、封印が合わない場合(BadSignature)の一種として扱われる
+    except (signing.BadSignature, User.DoesNotExist):
+        user = None
     if user is None:
         return render(request, "accounts/login.html", {
             "form": LoginForm(),
