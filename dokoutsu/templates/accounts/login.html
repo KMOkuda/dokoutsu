@@ -9,10 +9,12 @@
     <div class="field">
       <label for="{{ form.login_id.id_for_label }}">ID またはメールアドレス</label>
       {{ form.login_id }}
+      {{ form.login_id.errors }}
     </div>
     <div class="field">
       <label for="{{ form.password.id_for_label }}">パスワード</label>
       {{ form.password }}
+      {{ form.password.errors }}
     </div>
     <div class="field inline-row">
       <label class="check-inline"><input type="checkbox" name="remember" {% if form.remember.value %}checked{% endif %}> ログイン状態を保持する</label>

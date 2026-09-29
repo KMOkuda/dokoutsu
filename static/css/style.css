@@ -1050,3 +1050,12 @@ dialog.confirm button.confirm-danger {
   font-size: 0.8em;
   margin-left: 2px;
 }
+
+.answer-note {
+  margin: calc(-1 * var(--spacing-sm)) 0 var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
+}
+
+.header-back[hidden] {
+  display: none;
+}

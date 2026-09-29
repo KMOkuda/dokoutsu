@@ -46,3 +46,12 @@
 | N2 | test_menu_shown_on_answer_screens_when_logged_in | 合格 |
 | A1 | test_menu_hidden_when_anonymous | 合格 |
 | A2 | test_menu_hidden_on_auth_screens | 合格 |
+
+---
+
+## 6. ログアウトのテストケース
+
+| No | ケース | 操作 | 期待結果 | テストメソッド | 結果 |
+|---|---|---|---|---|---|
+| L1 | GETではログアウトしない | ログイン済みで/logoutにGET | 405を返し、ログイン状態のまま | LogoutTests.test_get_does_not_logout | 合格 |
+| L2 | POSTでログアウトする | ログイン済みで/logoutにPOST | ログイン画面へ遷移し、ログインが必要な画面に入れなくなる | test_post_logs_out | 合格 |

@@ -1,30 +1,63 @@
+import datetime
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .models import AnswerPost, Problem, Rank
 
 User = get_user_model()
 
+# Djangoの既定の文言(「このフィールドは必須です。」等)は詳細設計書の文言と異なるため、
+# エラーの種類ごとに差し替える。%(limit_value)d には各項目の上限・下限の数値が入る。
+REQUIRED_MESSAGE = {"required": "入力してください"}
+MAX_LENGTH_MESSAGE = {"max_length": "%(limit_value)d文字以内で入力してください"}
+EMAIL_MESSAGES = {
+    **REQUIRED_MESSAGE,
+    **MAX_LENGTH_MESSAGE,
+    "invalid": "正しいメールアドレスを入力してください",
+}
+PASSWORD_RULE_MESSAGE = "8文字以上、英字と数字を組み合わせてください"
+PASSWORD_MESSAGES = {**REQUIRED_MESSAGE, **MAX_LENGTH_MESSAGE, "min_length": PASSWORD_RULE_MESSAGE}
 
-EMAIL_INVALID_MESSAGE = {"invalid": "正しいメールアドレスを入力してください"}
+# str.isalnum()/isalpha()/isdigit()は日本語や全角数字も英数字とみなすため、半角に限定して判定する
+USERNAME_PATTERN = re.compile(r"[A-Za-z0-9]+")
+HAS_ALPHABET = re.compile(r"[A-Za-z]")
+HAS_DIGIT = re.compile(r"[0-9]")
+
+# 盤面(Problem.board_sgf)はgoban.jsが「AB[黒石の座標]…AW[白石の座標]…」の形で書き出す。
+# 座標は19路盤の列・行をそれぞれa〜sの1文字で表す(SGF形式)。
+BOARD_SGF_PATTERN = re.compile(r"(AB(\[[a-s]{2}\])+)?(AW(\[[a-s]{2}\])+)?")
+SGF_POINT_PATTERN = re.compile(r"\[([a-s]{2})\]")
+MOVE_PATTERN = re.compile(r"[a-s]{2}")
 
 
 def _placeholder(text):
     return {"placeholder": text}
 
 
+def _is_valid_password(password):
+    return bool(HAS_ALPHABET.search(password) and HAS_DIGIT.search(password))
+
+
 class SignupForm(forms.Form):
     email = forms.EmailField(
         max_length=254,
-        error_messages=EMAIL_INVALID_MESSAGE,
+        error_messages=EMAIL_MESSAGES,
         widget=forms.EmailInput(attrs=_placeholder("you@example.com")),
     )
     username = forms.CharField(
-        max_length=150, widget=forms.TextInput(attrs=_placeholder("半角英数字"))
+        max_length=150,
+        error_messages={**REQUIRED_MESSAGE, **MAX_LENGTH_MESSAGE},
+        widget=forms.TextInput(attrs=_placeholder("半角英数字")),
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs=_placeholder("8文字以上の英数字")), min_length=8
+        min_length=8,
+        max_length=128,
+        error_messages=PASSWORD_MESSAGES,
+        widget=forms.PasswordInput(attrs=_placeholder("8文字以上の英数字")),
     )
 
     def clean_email(self):
@@ -35,7 +68,7 @@ class SignupForm(forms.Form):
 
     def clean_username(self):
         username = self.cleaned_data["username"]
-        if not username.isalnum():
+        if not USERNAME_PATTERN.fullmatch(username):
             raise ValidationError("IDは半角英数字で入力してください")
         if User.objects.filter(username=username).exists():
             raise ValidationError("このIDは既に使用されています")
@@ -43,8 +76,8 @@ class SignupForm(forms.Form):
 
     def clean_password(self):
         password = self.cleaned_data["password"]
-        if not (any(c.isalpha() for c in password) and any(c.isdigit() for c in password)):
-            raise ValidationError("8文字以上、英字と数字を組み合わせてください")
+        if not _is_valid_password(password):
+            raise ValidationError(PASSWORD_RULE_MESSAGE)
         return password
 
     def save(self):
@@ -59,34 +92,44 @@ class SignupForm(forms.Form):
 
 class LoginForm(forms.Form):
     login_id = forms.CharField(
-        label="IDまたはメールアドレス",
+        max_length=254,
+        error_messages={**REQUIRED_MESSAGE, **MAX_LENGTH_MESSAGE},
         widget=forms.TextInput(attrs=_placeholder("ID / you@example.com")),
     )
-    password = forms.CharField(widget=forms.PasswordInput(attrs=_placeholder("パスワード")))
+    password = forms.CharField(
+        max_length=128,
+        error_messages={**REQUIRED_MESSAGE, **MAX_LENGTH_MESSAGE},
+        widget=forms.PasswordInput(attrs=_placeholder("パスワード")),
+    )
     remember = forms.BooleanField(required=False)
 
 
 class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(
         max_length=254,
-        error_messages=EMAIL_INVALID_MESSAGE,
+        error_messages=EMAIL_MESSAGES,
         widget=forms.EmailInput(attrs=_placeholder("you@example.com")),
     )
 
 
 class PasswordResetConfirmForm(forms.Form):
     new_password = forms.CharField(
-        widget=forms.PasswordInput(attrs=_placeholder("8文字以上の英数字")), min_length=8
+        min_length=8,
+        max_length=128,
+        error_messages=PASSWORD_MESSAGES,
+        widget=forms.PasswordInput(attrs=_placeholder("8文字以上の英数字")),
     )
     new_password_confirm = forms.CharField(
-        widget=forms.PasswordInput(attrs=_placeholder("もう一度入力"))
+        max_length=128,
+        error_messages={**REQUIRED_MESSAGE, **MAX_LENGTH_MESSAGE},
+        widget=forms.PasswordInput(attrs=_placeholder("もう一度入力")),
     )
 
     def clean(self):
         cleaned = super().clean()
         p1, p2 = cleaned.get("new_password"), cleaned.get("new_password_confirm")
-        if p1 and not (any(c.isalpha() for c in p1) and any(c.isdigit() for c in p1)):
-            self.add_error("new_password", "8文字以上、英字と数字を組み合わせてください")
+        if p1 and not _is_valid_password(p1):
+            self.add_error("new_password", PASSWORD_RULE_MESSAGE)
         if p1 and p2 and p1 != p2:
             self.add_error("new_password_confirm", "パスワードが一致しません")
         return cleaned
@@ -101,10 +144,16 @@ class ProblemForm(forms.ModelForm):
 
     title = forms.CharField(
         max_length=100,
-        error_messages={"required": "タイトルを入力してください"},
+        error_messages={"required": "タイトルを入力してください", **MAX_LENGTH_MESSAGE},
         widget=forms.TextInput(attrs={"placeholder": "例：右辺の攻め合い、どう受ける"}),
     )
-    deadline_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
+    deadline_date = forms.DateField(
+        error_messages={
+            "required": "締切の日付を選択してください",
+            "invalid": "締切の日付を選択してください",
+        },
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
     deadline_hour = forms.TypedChoiceField(choices=HOUR_CHOICES, coerce=int, initial=18)
     deadline_minute = forms.TypedChoiceField(choices=MINUTE_CHOICES, coerce=int, initial=0)
     disclosure_type = forms.ChoiceField(
@@ -125,13 +174,13 @@ class ProblemForm(forms.ModelForm):
         board_sgf = self.cleaned_data["board_sgf"]
         if not board_sgf:
             raise ValidationError("盤面に石を配置してください")
+        # 画面からは正しい形式しか送られないため、形式違いは改ざんされた送信とみなす
+        points = SGF_POINT_PATTERN.findall(board_sgf)
+        if not BOARD_SGF_PATTERN.fullmatch(board_sgf) or len(points) != len(set(points)):
+            raise ValidationError("盤面のデータが正しくありません")
         return board_sgf
 
     def clean(self):
-        import datetime
-
-        from django.utils import timezone
-
         cleaned = super().clean()
         date = cleaned.get("deadline_date")
         hour = cleaned.get("deadline_hour")
@@ -151,7 +200,7 @@ class ProblemForm(forms.ModelForm):
 class AnswerPostForm(forms.ModelForm):
     nickname = forms.CharField(
         max_length=20,
-        error_messages={"required": "ニックネームを入力してください"},
+        error_messages={"required": "ニックネームを入力してください", **MAX_LENGTH_MESSAGE},
         widget=forms.TextInput(attrs={"placeholder": "ニックネーム"}),
     )
     rank = forms.ModelChoiceField(
@@ -162,6 +211,8 @@ class AnswerPostForm(forms.ModelForm):
     move = forms.CharField(required=False, widget=forms.HiddenInput())
     body = forms.CharField(
         required=False,
+        max_length=200,
+        error_messages=MAX_LENGTH_MESSAGE,
         widget=forms.TextInput(attrs={"placeholder": "コメント"}),
     )
 
@@ -169,8 +220,16 @@ class AnswerPostForm(forms.ModelForm):
         model = AnswerPost
         fields = ["nickname", "rank", "move", "body"]
 
+    def __init__(self, *args, problem, **kwargs):
+        # 着手が空いている交点かを判定するため、回答先の問題の盤面を受け取る
+        super().__init__(*args, **kwargs)
+        self.problem = problem
+
     def clean_move(self):
         move = self.cleaned_data["move"]
         if not move:
             raise ValidationError("着手を1つ選んでください")
+        occupied = SGF_POINT_PATTERN.findall(self.problem.board_sgf)
+        if not MOVE_PATTERN.fullmatch(move) or move in occupied:
+            raise ValidationError("着手のデータが正しくありません")
         return move

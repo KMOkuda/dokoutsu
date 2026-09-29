@@ -13,7 +13,7 @@
 </head>
 <body>
 <header class="app-header">
-  {% if show_back %}<button type="button" class="header-back" aria-label="戻る" onclick="history.back()"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>{% endif %}
+  {% if show_back %}<button type="button" class="header-back" aria-label="戻る" hidden><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>{% endif %}
   <span class="app-name">どこ打つくん</span>
   {% if user.is_authenticated and not hide_menu %}{% include "components/menu.html" %}{% endif %}
 </header>
@@ -21,6 +21,7 @@
 {% block content %}{% endblock %}
 </main>
 {% block dialogs %}{% endblock %}
+<script src="/static/js/header.js"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

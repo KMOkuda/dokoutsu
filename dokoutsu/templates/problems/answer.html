@@ -49,6 +49,7 @@
       {{ form.rank }}
       <span class="turn-badge">{% if problem.turn == 'black' %}<i class="fa-solid fa-circle" aria-hidden="true"></i>{% else %}<i class="fa-regular fa-circle" aria-hidden="true"></i>{% endif %} {{ problem.get_turn_display }}</span>
     </div>
+    <p class="field-hint answer-note">ニックネームは本人確認されません。</p>
     <div class="answer-errors">
       {{ form.nickname.errors }}
       {{ form.rank.errors }}
@@ -68,6 +69,7 @@
     {{ form.move }}
     <div class="field">
       {{ form.body }}
+      {{ form.body.errors }}
     </div>
     <div class="bottom-actions">
       <button type="submit" id="answer-submit" disabled>この一手で投稿する</button>

@@ -2,6 +2,7 @@ import os
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -14,7 +15,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     if IS_RAILWAY:
         raise ImproperlyConfigured("環境変数 SECRET_KEY が設定されていません")
-    SECRET_KEY = "local-dev-only-not-for-production"
+    # ローカル開発では起動のたびに使い捨ての鍵を作る(鍵の文字列をソースコードに書かないため)。
+    # 再起動するとログイン状態は切れる
+    SECRET_KEY = get_random_secret_key()
 ALLOWED_HOSTS = ["*"]
 
 # Railwayはhttpsを手前で終端してhttpで転送するため、転送元のプロトコルを信頼してhttps扱いにする

@@ -154,6 +154,8 @@ class LoginTests(TestCase):
         response = self.client.post(reverse("login"), {"login_id": "", "password": ""})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
+        # ID欄・パスワード欄の両方にメッセージが表示される
+        self.assertContains(response, "入力してください", count=2)
 
     def test_unknown_login_id_same_error_as_wrong_password(self):
         response = self.client.post(
@@ -412,7 +414,7 @@ class AnswerCreateTests(TestCase):
             {"nickname": "", "rank": self.rank.pk, "move": "qf", "body": ""},
         )
         self.assertEqual(AnswerPost.objects.count(), 0)
-        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ニックネームを入力してください")
 
     def test_unselected_rank_rejected(self):
         problem = self._make_problem(Problem.AFTER_DEADLINE, timedelta(days=1))
@@ -421,7 +423,7 @@ class AnswerCreateTests(TestCase):
             {"nickname": "x", "rank": "", "move": "qf", "body": ""},
         )
         self.assertEqual(AnswerPost.objects.count(), 0)
-        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "棋力を選択してください")
 
     def test_anonymous_can_post_answer(self):
         problem = self._make_problem(Problem.AFTER_DEADLINE, timedelta(days=1))
@@ -639,3 +641,167 @@ class HomeRedirectTests(TestCase):
         self.client.login(username="top", password="pass1234")
         response = self.client.get("/")
         self.assertRedirects(response, reverse("active_problems"))
+
+
+# --- 入力値の検証(セキュリティ方針「2.4 入力値の検証」) ---
+
+
+class SignupInputValidationTests(TestCase):
+    def _post(self, **overrides):
+        data = {"email": "v@example.com", "username": "valid1", "password": "pass1234"}
+        data.update(overrides)
+        return self.client.post(reverse("signup"), data)
+
+    def test_empty_fields_show_required_message(self):
+        response = self._post(email="", username="", password="")
+        self.assertContains(response, "入力してください", count=3)
+
+    def test_japanese_username_rejected(self):
+        response = self._post(username="たろう123")
+        self.assertContains(response, "IDは半角英数字で入力してください")
+        self.assertFalse(User.objects.exists())
+
+    def test_fullwidth_digit_username_rejected(self):
+        response = self._post(username="taro１２３")
+        self.assertContains(response, "IDは半角英数字で入力してください")
+
+    def test_short_password_shows_design_message(self):
+        response = self._post(password="ab1")
+        self.assertContains(response, "8文字以上、英字と数字を組み合わせてください")
+
+    def test_password_with_fullwidth_digit_rejected(self):
+        response = self._post(password="abcdefg１")
+        self.assertContains(response, "8文字以上、英字と数字を組み合わせてください")
+
+    def test_username_over_150_chars_rejected(self):
+        response = self._post(username="a" * 151)
+        self.assertContains(response, "150文字以内で入力してください")
+
+    def test_username_150_chars_accepted(self):
+        response = self._post(username="a" * 150)
+        self.assertRedirects(response, reverse("signup_sent"))
+
+
+class PasswordResetInputValidationTests(TestCase):
+    def test_empty_email_shows_required_message(self):
+        response = self.client.post(reverse("password_reset"), {"email": ""})
+        self.assertContains(response, "入力してください")
+
+    def test_short_new_password_shows_design_message(self):
+        user = User.objects.create_user(username="rs", email="rs@example.com", password="pass1234")
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        response = self.client.post(
+            reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token}),
+            {"new_password": "ab1", "new_password_confirm": "ab1"},
+        )
+        self.assertContains(response, "8文字以上、英字と数字を組み合わせてください")
+
+
+class ProblemInputValidationTests(TestCase):
+    def setUp(self):
+        User.objects.create_user(username="pv", email="pv@example.com", password="pass1234")
+        self.client.login(username="pv", password="pass1234")
+
+    def _post(self, **overrides):
+        data = {
+            "title": "検証",
+            "deadline_date": (timezone.localtime() + timedelta(days=1)).date().isoformat(),
+            "deadline_hour": 12,
+            "deadline_minute": 0,
+            "disclosure_type": Problem.AFTER_DEADLINE,
+            "turn": Problem.BLACK,
+            "board_sgf": "AB[pd]AW[dd]",
+        }
+        data.update(overrides)
+        return self.client.post(reverse("problem_new"), data)
+
+    def test_valid_board_accepted(self):
+        response = self._post()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Problem.objects.get().board_sgf, "AB[pd]AW[dd]")
+
+    def test_title_over_100_chars_rejected(self):
+        response = self._post(title="あ" * 101)
+        self.assertContains(response, "100文字以内で入力してください")
+        self.assertFalse(Problem.objects.exists())
+
+    def test_title_100_chars_accepted(self):
+        response = self._post(title="あ" * 100)
+        self.assertEqual(response.status_code, 302)
+
+    def test_empty_deadline_date_shows_message(self):
+        response = self._post(deadline_date="")
+        self.assertContains(response, "締切の日付を選択してください")
+
+    def test_malformed_board_rejected(self):
+        # 範囲外の座標(t以降)、SGF以外の文字列、同じ交点への重複配置、AWとABの順序違い
+        for board in ("AB[zz]", "<script>alert(1)</script>", "AB[pd]AW[pd]", "AW[dd]AB[pd]", "AB[pd"):
+            with self.subTest(board=board):
+                response = self._post(board_sgf=board)
+                self.assertContains(response, "盤面のデータが正しくありません")
+        self.assertFalse(Problem.objects.exists())
+
+
+class AnswerInputValidationTests(TestCase):
+    def setUp(self):
+        author = User.objects.create_user(username="av", email="av@example.com", password="pass1234")
+        self.problem = Problem.objects.create(
+            author=author, title="問題", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=timezone.now() + timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        self.rank = Rank.objects.first()
+
+    def _post(self, **overrides):
+        data = {"nickname": "こだぬき", "rank": self.rank.pk, "move": "qf", "body": ""}
+        data.update(overrides)
+        return self.client.post(reverse("answer_create", kwargs={"pk": self.problem.pk}), data)
+
+    def test_nickname_notice_shown(self):
+        response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
+        self.assertContains(response, "ニックネームは本人確認されません。")
+
+    def test_nickname_over_20_chars_rejected(self):
+        response = self._post(nickname="あ" * 21)
+        self.assertContains(response, "20文字以内で入力してください")
+        self.assertFalse(AnswerPost.objects.exists())
+
+    def test_body_over_200_chars_rejected(self):
+        response = self._post(body="あ" * 201)
+        self.assertContains(response, "200文字以内で入力してください")
+        self.assertFalse(AnswerPost.objects.exists())
+
+    def test_body_200_chars_accepted(self):
+        self._post(body="あ" * 200)
+        self.assertEqual(AnswerPost.objects.get().body, "あ" * 200)
+
+    def test_malformed_move_rejected(self):
+        for move in ("zz", "q", "qfq", "<b>"):
+            with self.subTest(move=move):
+                response = self._post(move=move)
+                self.assertContains(response, "着手のデータが正しくありません")
+        self.assertFalse(AnswerPost.objects.exists())
+
+    def test_move_on_occupied_point_rejected(self):
+        response = self._post(move="pd")
+        self.assertContains(response, "着手のデータが正しくありません")
+        self.assertFalse(AnswerPost.objects.exists())
+
+
+class LogoutTests(TestCase):
+    def setUp(self):
+        User.objects.create_user(username="lo", email="lo@example.com", password="pass1234")
+        self.client.login(username="lo", password="pass1234")
+
+    def test_get_does_not_logout(self):
+        response = self.client.get(reverse("logout"))
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(self.client.get(reverse("active_problems")).status_code, 200)
+
+    def test_post_logs_out(self):
+        response = self.client.post(reverse("logout"))
+        self.assertRedirects(response, reverse("login"))
+        self.assertRedirects(
+            self.client.get(reverse("active_problems")),
+            f"{reverse('login')}?next={reverse('active_problems')}",
+        )

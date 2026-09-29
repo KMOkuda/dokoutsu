@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -159,6 +159,9 @@ def login_view(request):
 
 
 def logout_view(request):
+    # GETでのログアウトを許すと、外部サイトに置いたリンクや画像で勝手にログアウトさせられるため、POSTに限る
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
     auth_logout(request)
     return redirect("login")
 
@@ -268,11 +271,11 @@ def answer_create_view(request, pk):
                 {
                     "problem": problem,
                     "is_open": False,
-                    "form": AnswerPostForm(),
+                    "form": AnswerPostForm(problem=problem),
                     "show_back": True,
                 },
             )
-        form = AnswerPostForm(request.POST)
+        form = AnswerPostForm(request.POST, problem=problem)
         if form.is_valid():
             answer = form.save(commit=False)
             answer.problem = problem
@@ -282,7 +285,7 @@ def answer_create_view(request, pk):
             answered.append(str(problem.pk))
             request.session["answered_problems"] = answered
     else:
-        form = AnswerPostForm()
+        form = AnswerPostForm(problem=problem)
 
     return render(
         request,

@@ -25,6 +25,7 @@ graph LR
 | バックエンド | Django (Python) | Pythonでレビューしやすい |
 | データベース | PostgreSQL | Djangoとの標準的な組み合わせ |
 | フロントエンド | Djangoテンプレート + 素のJavaScript | フレームワークを使わず、生成コードをレビューしやすくする |
+| アイコン | Font Awesome Free 6.7.2 | 絵文字・記号の文字は端末のフォントによって表示が崩れるため。外部CDNは使わず、`static/vendor/fontawesome/`に同梱して配信する |
 | 盤面描画 | JavaScript (SVG) ※自作 | 外部ライブラリに依存せず、全て自分でレビューできる状態にするため。選定理由は「4.1 盤面」を参照 |
 | ホスティング | Railway | 小規模利用ではコストを抑えられる。第2イテレーション以降、本番環境はAWS(Docker)へ移行する予定 |
 | メール送信 | Amazon SES | パスワード再発行のリンク送信に使用 |

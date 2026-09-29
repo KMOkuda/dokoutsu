@@ -158,6 +158,8 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page = self.page
         page.goto(self._url(f"/problems/{problem.pk}/answer"))
         self._shot("E3_1_answer_form")
+        # 共有URLを直接開いた場合は戻る先がアプリの外になるため、戻るボタンを表示しない
+        self.assertTrue(page.is_hidden(".header-back"))
         self.assertTrue(page.is_disabled("#answer-submit"))
 
         page.fill("#id_nickname", "こだぬき")
@@ -204,6 +206,13 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page.wait_for_url("**/problems/active")
         self.assertIn("E4対象問題", page.content())
         self._shot("E4_1_active_list")
+
+        # アプリ内から移動した場合は戻るボタンを表示し、押すと元の画面に戻る
+        page.click("a.btn-outline:has-text('問題')")
+        page.wait_for_url("**/answer")
+        self.assertTrue(page.is_visible(".header-back"))
+        page.click(".header-back")
+        page.wait_for_url("**/problems/active")
 
         page.click(".btn-icon[data-sheet-trigger='actions']")
         page.wait_for_selector("#action-sheet[open]")
@@ -259,3 +268,48 @@ class E2EFlowTests(StaticLiveServerTestCase):
 
         page.click(".menu-close")
         self.assertTrue(page.is_hidden(".menu-list"))
+
+    # --- E6: 入力エラーが画面に表示される ---
+
+    def test_input_errors_displayed_flow(self):
+        User.objects.create_user(
+            username="e2eerror", email="error@example.com",
+            password="pass1234", is_active=True,
+        )
+        page = self.page
+
+        page.goto(self._url("/login"))
+        page.click("button:has-text('ログイン')")
+        page.wait_for_selector(".errorlist")
+        self.assertEqual(
+            [e.inner_text() for e in page.query_selector_all(".errorlist")],
+            ["入力してください", "入力してください"],
+        )
+        self._shot("E6_1_login_required")
+
+        page.goto(self._url("/signup"))
+        page.fill("#id_email", "not-an-email")
+        page.fill("#id_username", "たろう")
+        page.fill("#id_password", "ab1")
+        page.click("button:has-text('登録する')")
+        page.wait_for_selector(".errorlist")
+        errors = page.inner_text("form")
+        self.assertIn("正しいメールアドレスを入力してください", errors)
+        self.assertIn("IDは半角英数字で入力してください", errors)
+        self.assertIn("8文字以上、英字と数字を組み合わせてください", errors)
+        self._shot("E6_2_signup_invalid")
+
+        page.goto(self._url("/login"))
+        page.fill("#id_login_id", "e2eerror")
+        page.fill("#id_password", "pass1234")
+        page.click("button:has-text('ログイン')")
+        page.wait_for_url("**/problems/active")
+        page.goto(self._url("/problems/new"))
+        page.click("#problem-submit")
+        page.click("#publish-confirm")
+        page.wait_for_selector(".errorlist")
+        errors = page.inner_text("#problem-form")
+        self.assertIn("タイトルを入力してください", errors)
+        self.assertIn("締切の日付を選択してください", errors)
+        self.assertIn("盤面に石を配置してください", errors)
+        self._shot("E6_3_problem_required")
