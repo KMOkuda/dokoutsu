@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Count, Q
+from django.db.models.functions import Coalesce
 from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -322,7 +323,10 @@ def _can_view_answers(request, problem):
 def answer_list_view(request, pk):
     problem = get_object_or_404(Problem, pk=pk)
     can_view = _can_view_answers(request, problem)
-    answers = problem.answer_posts.select_related("rank") if can_view else []
+    # select_related: 各回答の棋力(Rank)を回答と同じ1回の問い合わせでまとめて取得する
+    answers = (
+        problem.answer_posts.select_related("rank").order_by("-created_at") if can_view else []
+    )
     return render(
         request,
         "answers/list.html",
@@ -359,7 +363,9 @@ def archive_problems_view(request):
         Problem.objects.filter(author=request.user)
         .filter(Q(closed_at__isnull=False) | Q(deadline__lte=timezone.now()))
         .annotate(answer_count=Count("answer_posts"))
-        .order_by("-deadline")
+        # 終了日時の新しい順。締切前に受付終了した問題はclosed_at、それ以外はdeadlineを終了日時とする
+        # (Coalesce: 並べた項目のうち、最初に値が入っているものを使う)
+        .order_by(Coalesce("closed_at", "deadline").desc())
     )
     for problem in problems:
         problem.share_url = _answer_url(request, problem)

@@ -46,6 +46,10 @@
     {{ form.non_field_errors }}
     <div class="answer-inputs">
       {{ form.nickname }}
+      <div class="rank-tabs" role="group" aria-label="棋力の区分" hidden>
+        <button type="button" data-rank-category="kyu" aria-pressed="true">級</button>
+        <button type="button" data-rank-category="dan" aria-pressed="false">段</button>
+      </div>
       {{ form.rank }}
       <span class="turn-badge">{% if problem.turn == 'black' %}<i class="fa-solid fa-circle" aria-hidden="true"></i>{% else %}<i class="fa-regular fa-circle" aria-hidden="true"></i>{% endif %} {{ problem.get_turn_display }}</span>
     </div>
@@ -80,4 +84,5 @@
 
 {% block scripts %}
 <script src="/static/js/goban.js"></script>
+<script src="/static/js/rank_tabs.js"></script>
 {% endblock %}

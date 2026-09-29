@@ -2,7 +2,7 @@
 {% block content %}
 <div class="form-section">
   <h1 class="accent-title">新規登録</h1>
-  <form method="post" novalidate>
+  <form method="post" data-required-fields="email username password" novalidate>
     {% csrf_token %}
     {{ form.non_field_errors }}
     <div class="field">

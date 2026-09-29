@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<form method="post" id="problem-form" novalidate>
+<form method="post" id="problem-form" data-required-fields="title deadline_date board_sgf" novalidate>
   {% csrf_token %}
   <div class="form-section">
     <h1>新しく問題を作る</h1>
@@ -43,10 +43,10 @@
     {{ form.board_sgf.errors }}
     <div data-goban-editor data-goban-target="id_board_sgf" data-goban-palette="stone-palette"></div>
     <p class="hint">交点をタップして石を置いてください。</p>
+    <div id="stone-palette" class="stone-palette" role="toolbar" aria-label="石を選ぶ"></div>
   </section>
 
-  <div class="bottom-bar">
-    <div id="stone-palette" class="stone-palette" role="toolbar" aria-label="石を選ぶ"></div>
+  <div class="form-actions">
     <button type="submit" id="problem-submit">出題する</button>
   </div>
 </form>

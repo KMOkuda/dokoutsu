@@ -305,6 +305,8 @@
         if (result.ok) grid = result.grid;
       }
       targetInput.value = serializeBoardSgf(grid);
+      // プログラムから値を書き換えても入力イベントは起きないため、送信ボタンの活性判定(required_fields.js)に知らせる
+      targetInput.dispatchEvent(new Event("input", { bubbles: true }));
       draw();
     }
 

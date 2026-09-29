@@ -805,3 +805,96 @@ class LogoutTests(TestCase):
             self.client.get(reverse("active_problems")),
             f"{reverse('login')}?next={reverse('active_problems')}",
         )
+
+
+# --- 設計書に合わせた修正(並び順・締切の初期値・棋力の区分) ---
+
+
+class OrderingTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="od", email="od@example.com", password="pass1234")
+        self.client.login(username="od", password="pass1234")
+
+    def test_answers_listed_newest_first(self):
+        problem = Problem.objects.create(
+            author=self.user, title="並び", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=timezone.now() + timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        rank = Rank.objects.first()
+        first = AnswerPost.objects.create(problem=problem, nickname="先", rank=rank, move="aa")
+        second = AnswerPost.objects.create(problem=problem, nickname="後", rank=rank, move="bb")
+        AnswerPost.objects.filter(pk=first.pk).update(created_at=timezone.now() - timedelta(hours=1))
+        response = self.client.get(reverse("answer_list", kwargs={"pk": problem.pk}))
+        self.assertEqual([a.pk for a in response.context["answers"]], [second.pk, first.pk])
+
+    def test_archive_ordered_by_closed_at_before_deadline(self):
+        now = timezone.now()
+        # 締切は古いが、今日受付終了した問題 → 終了日時は今日なので先頭に来る
+        closed_today = Problem.objects.create(
+            author=self.user, title="今日終了", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=now + timedelta(days=5), closed_at=now - timedelta(minutes=5),
+            disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        expired_yesterday = Problem.objects.create(
+            author=self.user, title="昨日締切", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=now - timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        expired_last_week = Problem.objects.create(
+            author=self.user, title="先週締切", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=now - timedelta(days=7), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        response = self.client.get(reverse("archive_problems"))
+        self.assertEqual(
+            [p.pk for p in response.context["problems"]],
+            [closed_today.pk, expired_yesterday.pk, expired_last_week.pk],
+        )
+
+
+class DeadlineInitialTests(TestCase):
+    def _initial_at(self, local_dt):
+        from zoneinfo import ZoneInfo
+
+        from .forms import ProblemForm
+
+        aware = local_dt.replace(tzinfo=ZoneInfo("Asia/Tokyo"))
+        with mock.patch("django.utils.timezone.now", return_value=aware):
+            form = ProblemForm()
+        return form.initial["deadline_date"], form.initial["deadline_hour"], form.initial["deadline_minute"]
+
+    def test_rounds_up_to_next_10_minutes(self):
+        import datetime
+
+        self.assertEqual(
+            self._initial_at(datetime.datetime(2026, 9, 29, 14, 3, 30)),
+            (datetime.date(2026, 9, 29), 14, 10),
+        )
+
+    def test_exact_10_minutes_goes_to_next_slot(self):
+        import datetime
+
+        self.assertEqual(
+            self._initial_at(datetime.datetime(2026, 9, 29, 14, 10, 0)),
+            (datetime.date(2026, 9, 29), 14, 20),
+        )
+
+    def test_crosses_midnight(self):
+        import datetime
+
+        self.assertEqual(
+            self._initial_at(datetime.datetime(2026, 9, 29, 23, 55, 0)),
+            (datetime.date(2026, 9, 30), 0, 0),
+        )
+
+
+class RankCategoryTests(TestCase):
+    def test_rank_options_have_category_and_tabs(self):
+        author = User.objects.create_user(username="rk", email="rk@example.com", password="pass1234")
+        problem = Problem.objects.create(
+            author=author, title="棋力", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=timezone.now() + timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        response = self.client.get(reverse("answer_create", kwargs={"pk": problem.pk}))
+        self.assertContains(response, 'data-rank-category="kyu"')
+        self.assertContains(response, 'data-rank-category="dan"')
+        self.assertContains(response, 'data-category="kyu"', count=Rank.objects.filter(category=Rank.KYU).count())
+        self.assertContains(response, 'data-category="dan"', count=Rank.objects.filter(category=Rank.DAN).count())

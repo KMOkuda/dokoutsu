@@ -163,6 +163,15 @@ class E2EFlowTests(StaticLiveServerTestCase):
         self.assertTrue(page.is_disabled("#answer-submit"))
 
         page.fill("#id_nickname", "こだぬき")
+        # 棋力は「級」「段」のタブで選択肢を切り替える。初期表示は級
+        rank_labels = lambda: page.eval_on_selector(
+            "#id_rank", "s => Array.from(s.options).slice(1).map(o => o.text)"
+        )
+        self.assertTrue(all(label.endswith("級") for label in rank_labels()))
+        page.click(".rank-tabs button:has-text('段')")
+        self.assertTrue(all(label.endswith("段") for label in rank_labels()))
+        self._shot("E3_1b_rank_dan_tab")
+        page.click(".rank-tabs button:has-text('級')")
         page.select_option("#id_rank", label="15級")
         page.fill("#id_body", "天元が急場")
 
@@ -260,6 +269,8 @@ class E2EFlowTests(StaticLiveServerTestCase):
         self.assertTrue(page.is_hidden(".menu-list"))
         page.click(".menu-open")
         self.assertTrue(page.is_visible(".menu-list"))
+        # メニュー表示中は背後の画面をスクロールさせない
+        self.assertEqual(page.eval_on_selector("body", "b => getComputedStyle(b).overflow"), "hidden")
         self._shot("E5_1_menu_open")
 
         # 暗転部分をクリックしても閉じない。閉じるのは右上の閉じるボタンのみ
@@ -268,8 +279,9 @@ class E2EFlowTests(StaticLiveServerTestCase):
 
         page.click(".menu-close")
         self.assertTrue(page.is_hidden(".menu-list"))
+        self.assertEqual(page.eval_on_selector("body", "b => getComputedStyle(b).overflow"), "visible")
 
-    # --- E6: 入力エラーが画面に表示される ---
+    # --- E6: 送信ボタンの活性条件と入力エラーの表示 ---
 
     def test_input_errors_displayed_flow(self):
         User.objects.create_user(
@@ -278,16 +290,20 @@ class E2EFlowTests(StaticLiveServerTestCase):
         )
         page = self.page
 
+        # 必須項目がそろうまでログインボタンは押せない
         page.goto(self._url("/login"))
+        self.assertTrue(page.is_disabled("button:has-text('ログイン')"))
+        page.fill("#id_login_id", "e2eerror")
+        self.assertTrue(page.is_disabled("button:has-text('ログイン')"))
+        page.fill("#id_password", "wrongpass1")
+        self.assertTrue(page.is_enabled("button:has-text('ログイン')"))
         page.click("button:has-text('ログイン')")
         page.wait_for_selector(".errorlist")
-        self.assertEqual(
-            [e.inner_text() for e in page.query_selector_all(".errorlist")],
-            ["入力してください", "入力してください"],
-        )
-        self._shot("E6_1_login_required")
+        self.assertIn("IDまたはパスワードが違います", page.inner_text("form"))
+        self._shot("E6_1_login_error")
 
         page.goto(self._url("/signup"))
+        self.assertTrue(page.is_disabled("button:has-text('登録する')"))
         page.fill("#id_email", "not-an-email")
         page.fill("#id_username", "たろう")
         page.fill("#id_password", "ab1")
@@ -304,12 +320,22 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page.fill("#id_password", "pass1234")
         page.click("button:has-text('ログイン')")
         page.wait_for_url("**/problems/active")
+
+        # 問題投稿: 締切は初期値が入っている。タイトルと盤面がそろうまで出題ボタンは押せない
         page.goto(self._url("/problems/new"))
+        self.assertTrue(page.is_disabled("#problem-submit"))
+        page.fill("#id_title", "締切エラー確認")
+        self.assertTrue(page.is_disabled("#problem-submit"))
+        board = page.wait_for_selector("[data-goban-editor] svg")
+        box = board.bounding_box()
+        page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        self.assertTrue(page.is_enabled("#problem-submit"))
+
+        # 過去の締切はサーバー側の入力チェックでエラーになり、画面に表示される
+        yesterday = (timezone.localtime() - timedelta(days=1)).date().isoformat()
+        page.fill("#id_deadline_date", yesterday)
         page.click("#problem-submit")
         page.click("#publish-confirm")
         page.wait_for_selector(".errorlist")
-        errors = page.inner_text("#problem-form")
-        self.assertIn("タイトルを入力してください", errors)
-        self.assertIn("締切の日付を選択してください", errors)
-        self.assertIn("盤面に石を配置してください", errors)
-        self._shot("E6_3_problem_required")
+        self.assertIn("締切は現在より後の日時を指定してください", page.inner_text("#problem-form"))
+        self._shot("E6_3_problem_past_deadline")

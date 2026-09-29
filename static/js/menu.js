@@ -12,6 +12,8 @@
       list.hidden = !open;
       overlay.hidden = !open;
       openBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      // メニュー表示中は背後の画面をスクロールさせない(詳細設計書 M「4.2 レイアウトの制約」)
+      document.documentElement.classList.toggle("menu-opened", open);
     }
 
     openBtn.addEventListener("click", function () {

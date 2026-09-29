@@ -55,7 +55,7 @@ body {
 }
 
 main {
-  padding-bottom: 96px;
+  padding-bottom: var(--spacing-lg);
 }
 
 h1 {
@@ -439,29 +439,19 @@ button.btn-secondary {
   border-top: 1px solid var(--color-divider);
 }
 
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--screen-width);
-  z-index: 15;
+/* 石パレットは盤面の直下に置く。画面下部には固定しない(詳細設計書 4a「4.3 レイアウトの制約」) */
+.stone-palette {
   display: flex;
   gap: var(--spacing-sm);
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-surface);
-  border-top: 2px solid var(--color-divider);
+  padding: 0 var(--spacing-sm) var(--spacing-md);
 }
 
-.bottom-bar button[type="submit"] {
+.stone-palette .palette-button {
   flex: 1;
 }
 
-.stone-palette {
-  display: flex;
-  gap: var(--spacing-xs);
+.form-actions {
+  padding: var(--spacing-md) var(--spacing-lg);
 }
 
 .palette-button {
@@ -568,12 +558,41 @@ button.btn-secondary {
 }
 
 .answer-inputs input {
-  flex: 0 0 36%;
+  flex: 0 0 32%;
+  min-width: 0;
 }
 
 .answer-inputs select,
 .answer-inputs .rank-display {
-  flex: 0 0 76px;
+  flex: 0 0 68px;
+}
+
+/* 棋力の「級」「段」タブ。2つのボタンの枠線を重ねて1つの部品に見せる */
+.rank-tabs {
+  display: flex;
+}
+
+.rank-tabs[hidden] {
+  display: none;
+}
+
+.rank-tabs button {
+  width: 32px;
+  height: var(--control-height);
+  padding: 0;
+  border: var(--border-input);
+  background: var(--color-surface);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+.rank-tabs button + button {
+  border-left: none;
+}
+
+.rank-tabs button[aria-pressed="true"] {
+  background: var(--color-primary-tint);
+  color: var(--color-link);
 }
 
 .answer-errors {
@@ -966,6 +985,11 @@ dialog.confirm button.confirm-danger {
   width: min(72vw, 310px);
   background: #f7fbff;
   color: var(--color-text);
+}
+
+html.menu-opened,
+html.menu-opened body {
+  overflow: hidden;
 }
 
 .menu-overlay[hidden],

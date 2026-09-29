@@ -152,10 +152,11 @@ class ProblemForm(forms.ModelForm):
             "required": "締切の日付を選択してください",
             "invalid": "締切の日付を選択してください",
         },
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # type="date"の入力欄は「YYYY-MM-DD」形式の値しか表示できないため、形式を固定する
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
-    deadline_hour = forms.TypedChoiceField(choices=HOUR_CHOICES, coerce=int, initial=18)
-    deadline_minute = forms.TypedChoiceField(choices=MINUTE_CHOICES, coerce=int, initial=0)
+    deadline_hour = forms.TypedChoiceField(choices=HOUR_CHOICES, coerce=int)
+    deadline_minute = forms.TypedChoiceField(choices=MINUTE_CHOICES, coerce=int)
     disclosure_type = forms.ChoiceField(
         choices=Problem.DISCLOSURE_CHOICES,
         widget=forms.RadioSelect,
@@ -169,6 +170,19 @@ class ProblemForm(forms.ModelForm):
     class Meta:
         model = Problem
         fields = ["title", "disclosure_type", "turn", "board_sgf"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            # 締切の初期値は、現在時刻より後で最も近い10分刻みの日時(詳細設計書 4a「2.1 入力項目」)。
+            # 例: 14:03→14:10、14:10→14:20、23:55→翌日0:00
+            now = timezone.localtime().replace(second=0, microsecond=0)
+            default = now + datetime.timedelta(minutes=10 - now.minute % 10)
+            self.initial.update(
+                deadline_date=default.date(),
+                deadline_hour=default.hour,
+                deadline_minute=default.minute,
+            )
 
     def clean_board_sgf(self):
         board_sgf = self.cleaned_data["board_sgf"]
@@ -197,6 +211,17 @@ class ProblemForm(forms.ModelForm):
         return cleaned
 
 
+class RankSelect(forms.Select):
+    """棋力のプルダウン。画面の「級」「段」タブで絞り込めるよう、選択肢ごとに区分を持たせる。"""
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        # 先頭の「棋力」(未選択)は区分を持たない。それ以外のvalueからは元のRankを取り出せる
+        if value:
+            option["attrs"]["data-category"] = value.instance.category
+        return option
+
+
 class AnswerPostForm(forms.ModelForm):
     nickname = forms.CharField(
         max_length=20,
@@ -207,6 +232,7 @@ class AnswerPostForm(forms.ModelForm):
         queryset=Rank.objects.all(),
         empty_label="棋力",
         error_messages={"required": "棋力を選択してください"},
+        widget=RankSelect,
     )
     move = forms.CharField(required=False, widget=forms.HiddenInput())
     body = forms.CharField(
