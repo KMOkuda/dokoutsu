@@ -407,7 +407,9 @@
         labels: "labels" in section.dataset,
       });
       if (toggleBtn) {
-        toggleBtn.textContent = zoomed ? "−" : "+";
+        toggleBtn.innerHTML = zoomed
+          ? '<i class="fa-solid fa-minus" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-plus" aria-hidden="true"></i>';
         toggleBtn.setAttribute("aria-label", zoomed ? "盤面全体を表示する" : "着手位置周辺を拡大する");
       }
     }

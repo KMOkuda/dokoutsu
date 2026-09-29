@@ -99,9 +99,9 @@ ul {
   background: none;
   border: none;
   color: #fff;
-  font-size: 26px;
+  font-size: 18px;
   line-height: 1;
-  padding: 0 var(--spacing-xs) 4px 0;
+  padding: 0 var(--spacing-xs) 0 0;
   cursor: pointer;
 }
 
@@ -502,7 +502,7 @@ button.btn-secondary {
 }
 
 .chevron {
-  font-size: 20px;
+  font-size: 14px;
   color: var(--color-muted);
 }
 
@@ -539,7 +539,7 @@ button.btn-secondary {
   justify-content: center;
   width: 28px;
   height: 28px;
-  font-size: 9px;
+  font-size: 15px;
   font-weight: bold;
   border: 1px solid var(--color-line);
   background: var(--color-surface);
@@ -556,7 +556,6 @@ button.btn-secondary {
   background: #111;
   border-color: #111;
   color: #fff;
-  font-size: 14px;
 }
 
 /* --- 回答投稿画面 --- */
@@ -669,8 +668,7 @@ button.btn-secondary {
   line-height: 16px;
   border: 2px solid var(--color-line);
   background: var(--color-surface);
-  font-weight: bold;
-  font-size: 13px;
+  font-size: 10px;
 }
 
 /* --- 問題一覧(2c/2d) --- */
@@ -826,6 +824,12 @@ dialog.sheet {
   color: var(--color-text);
 }
 
+.sheet-item i {
+  width: 1.4em;
+  margin-right: var(--spacing-sm);
+  text-align: center;
+}
+
 .sheet-danger {
   color: var(--color-danger);
 }
@@ -859,7 +863,7 @@ dialog.sheet {
 .share-grid .share-icon {
   width: 44px;
   height: 44px;
-  font-size: 12px;
+  font-size: 22px;
 }
 
 dialog.confirm {
@@ -969,7 +973,7 @@ dialog.confirm button.confirm-danger {
   display: none;
 }
 
-/* 開いている間は暗転したヘッダーの右端に × を重ねる */
+/* 開いている間は暗転したヘッダーの右端に閉じるボタンを重ねる */
 .menu-list-header {
   position: fixed;
   top: 0;
@@ -1002,10 +1006,12 @@ dialog.confirm button.confirm-danger {
 }
 
 .menu-list a[aria-current="page"]::after {
-  content: "▾";
+  content: "\f0d7";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
   float: right;
   color: var(--color-primary);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .menu-list .menu-logout {
@@ -1033,4 +1039,14 @@ dialog.confirm button.confirm-danger {
 
 .menu-open[aria-expanded="true"] {
   visibility: hidden;
+}
+
+.turn-badge i {
+  font-size: 11px;
+}
+
+.text-link i,
+.empty-state a i {
+  font-size: 0.8em;
+  margin-left: 2px;
 }

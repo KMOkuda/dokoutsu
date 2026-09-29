@@ -7,7 +7,7 @@
 </div>
 {% if can_view %}
   <div class="turn-row">
-    <span class="turn-badge">{% if problem.turn == 'black' %}●{% else %}○{% endif %} {{ problem.get_turn_display }}</span>
+    <span class="turn-badge">{% if problem.turn == 'black' %}<i class="fa-solid fa-circle" aria-hidden="true"></i>{% else %}<i class="fa-regular fa-circle" aria-hidden="true"></i>{% endif %} {{ problem.get_turn_display }}</span>
   </div>
   <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}"></section>
   <section aria-label="回答一覧">

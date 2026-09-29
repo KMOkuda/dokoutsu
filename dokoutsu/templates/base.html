@@ -5,11 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {% block robots %}{% endblock %}
 <title>どこ打つくん</title>
+<link rel="stylesheet" href="/static/vendor/fontawesome/css/fontawesome.min.css">
+<link rel="stylesheet" href="/static/vendor/fontawesome/css/solid.min.css">
+<link rel="stylesheet" href="/static/vendor/fontawesome/css/regular.min.css">
+<link rel="stylesheet" href="/static/vendor/fontawesome/css/brands.min.css">
 <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 <header class="app-header">
-  {% if show_back %}<button type="button" class="header-back" aria-label="戻る" onclick="history.back()">‹</button>{% endif %}
+  {% if show_back %}<button type="button" class="header-back" aria-label="戻る" onclick="history.back()"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>{% endif %}
   <span class="app-name">どこ打つくん</span>
   {% if user.is_authenticated and not hide_menu %}{% include "components/menu.html" %}{% endif %}
 </header>

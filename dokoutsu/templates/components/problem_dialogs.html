@@ -8,9 +8,9 @@
     <p class="sheet-sub">回答 <span data-fill="answerCount"></span>件・<span data-fill="status"></span></p>
   </div>
   {% if can_close %}
-    <button type="button" class="sheet-item" data-next-dialog="close-dialog">◎ 出題を終了する</button>
+    <button type="button" class="sheet-item" data-next-dialog="close-dialog"><i class="fa-regular fa-circle-dot" aria-hidden="true"></i>出題を終了する</button>
   {% endif %}
-  <button type="button" class="sheet-item sheet-danger" data-next-dialog="delete-dialog">🗑 問題を削除する</button>
+  <button type="button" class="sheet-item sheet-danger" data-next-dialog="delete-dialog"><i class="fa-regular fa-trash-can" aria-hidden="true"></i>問題を削除する</button>
   <button type="button" class="sheet-item sheet-cancel" data-dialog-cancel>キャンセル</button>
 </dialog>
 

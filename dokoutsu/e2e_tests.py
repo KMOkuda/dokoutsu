@@ -253,9 +253,9 @@ class E2EFlowTests(StaticLiveServerTestCase):
         self.assertTrue(page.is_visible(".menu-list"))
         self._shot("E5_1_menu_open")
 
-        page.mouse.click(10, 400)  # ドロワー外の暗転部分をクリック
-        self.assertTrue(page.is_hidden(".menu-list"))
+        # 暗転部分をクリックしても閉じない。閉じるのは右上の閉じるボタンのみ
+        page.mouse.click(10, 400)
+        self.assertTrue(page.is_visible(".menu-list"))
 
-        page.click(".menu-open")
         page.click(".menu-close")
         self.assertTrue(page.is_hidden(".menu-list"))

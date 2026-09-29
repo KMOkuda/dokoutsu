@@ -1,11 +1,11 @@
 {% with current=request.resolver_match.url_name %}
 <nav aria-label="共通メニュー" class="menu">
-  <button type="button" class="menu-open" aria-haspopup="true" aria-expanded="false" aria-label="メニューを開く">☰</button>
+  <button type="button" class="menu-open" aria-haspopup="true" aria-expanded="false" aria-label="メニューを開く"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   <div class="menu-overlay" hidden></div>
   <div class="menu-list" hidden>
     <div class="menu-list-header">
       <span class="app-name">どこ打つくん</span>
-      <button type="button" class="menu-close" aria-label="メニューを閉じる">×</button>
+      <button type="button" class="menu-close" aria-label="メニューを閉じる"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <ul>
       <li><a href="{% url 'problem_new' %}"{% if current == 'problem_new' %} aria-current="page"{% endif %}>新しく問題を作る</a></li>

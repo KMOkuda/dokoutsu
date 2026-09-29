@@ -20,8 +20,5 @@
     closeBtn.addEventListener("click", function () {
       setOpen(false);
     });
-    overlay.addEventListener("click", function () {
-      setOpen(false);
-    });
   });
 })();

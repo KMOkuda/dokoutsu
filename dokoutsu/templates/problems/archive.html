@@ -19,9 +19,9 @@
         <button type="button" class="btn-icon" aria-label="その他の操作" data-sheet-trigger="actions"
           data-title="{{ problem.title }}" data-turn-label="{{ problem.get_turn_display }}"
           data-answer-count="{{ problem.answer_count }}" data-status="受付終了"
-          data-delete-url="{% url 'problem_delete' pk=problem.pk %}">…</button>
+          data-delete-url="{% url 'problem_delete' pk=problem.pk %}"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></button>
         <button type="button" class="btn-icon" aria-label="シェア" data-sheet-trigger="share"
-          data-title="{{ problem.title }}" data-share-url="{{ problem.share_url }}">⤴</button>
+          data-title="{{ problem.title }}" data-share-url="{{ problem.share_url }}"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></button>
       </div>
     </li>
   {% endfor %}

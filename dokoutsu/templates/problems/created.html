@@ -9,23 +9,23 @@
       <span class="card-title">{{ problem.title }}</span>
       <span class="card-meta">{{ problem.get_turn_display }}・回答 {{ answer_count }}件</span>
     </span>
-    <span class="chevron" aria-hidden="true">›</span>
+    <span class="chevron"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
   </a>
 </div>
 
 <section class="form-section divider-top" aria-labelledby="share-heading">
   <h2 id="share-heading" class="section-title">友達に問題をシェアする</h2>
   <div class="share-buttons" data-share-url="{{ answer_url }}" data-share-title="{{ problem.title }}">
-    <a class="share-button" data-share="line" target="_blank" rel="noopener"><span class="share-icon share-line">LINE</span>LINE</a>
-    <a class="share-button" data-share="x" target="_blank" rel="noopener"><span class="share-icon share-x">X</span>X</a>
-    <button type="button" class="share-button" data-share="copy"><span class="share-icon share-link">🔗</span><span data-copy-label>リンク</span></button>
-    <button type="button" class="share-button" data-share="native"><span class="share-icon share-other">⤴</span>その他</button>
+    <a class="share-button" data-share="line" target="_blank" rel="noopener"><span class="share-icon share-line"><i class="fa-brands fa-line" aria-hidden="true"></i></span>LINE</a>
+    <a class="share-button" data-share="x" target="_blank" rel="noopener"><span class="share-icon share-x"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></span>X</a>
+    <button type="button" class="share-button" data-share="copy"><span class="share-icon share-link"><i class="fa-solid fa-link" aria-hidden="true"></i></span><span data-copy-label>リンク</span></button>
+    <button type="button" class="share-button" data-share="native"><span class="share-icon share-other"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></span>その他</button>
   </div>
   <p class="share-url">{{ answer_url }}</p>
 </section>
 
 <div class="form-section divider-top">
-  <a class="text-link" href="{% url 'problem_new' %}">続けて問題を作る ›</a>
+  <a class="text-link" href="{% url 'problem_new' %}">続けて問題を作る <i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
 </div>
 {% endblock %}
 
