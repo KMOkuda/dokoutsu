@@ -84,6 +84,18 @@ class AnswerPost(models.Model):
         return f"{self.nickname} - {self.problem.title}"
 
 
+class AnswerPostLog(models.Model):
+    """回答投稿の記録(テーブル定義書 2.6 dokoutsu_answerpostlog)。投稿頻度の制限に使い、10分より古い行は削除する。"""
+
+    ip_address = models.GenericIPAddressField()
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "dokoutsu_answerpostlog"
+        indexes = [models.Index(fields=["ip_address", "problem", "created_at"])]
+
+
 class EmailSendLog(models.Model):
     """メール送信の記録(テーブル定義書 2.5 dokoutsu_emailsendlog)。送信回数の制限に使う。"""
 

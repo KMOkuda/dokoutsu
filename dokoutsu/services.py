@@ -1,8 +1,9 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 
-from .models import EmailSendLog
+from .models import AnswerPostLog, EmailSendLog
 
 # メール送信回数の制限(基本設計書「3.2 メール送信回数の制限」)
 EMAIL_SEND_LIMIT = 5
@@ -21,4 +22,33 @@ def reserve_email_send(email, purpose):
     if logs.count() >= EMAIL_SEND_LIMIT:
         return False
     EmailSendLog.objects.create(email=address, purpose=purpose)
+    return True
+
+
+# 回答投稿の頻度制限(基本設計書「3.3 回答投稿の頻度制限」)
+ANSWER_POST_LIMIT = 10
+ANSWER_POST_WINDOW = timedelta(minutes=10)
+ANSWER_POST_LIMIT_MESSAGE = "短時間に多くの回答が投稿されたため、受け付けられませんでした。時間をおいてもう一度お試しください"
+
+
+def client_ip(request):
+    """投稿元のIPアドレスを返す。
+
+    Railway上では、アプリに届く接続元(REMOTE_ADDR)はRailwayの中継サーバーになる。Railwayの中継サーバーは
+    利用者が送ってきたX-Forwarded-Forを取り除き、実際の接続元を先頭に入れて渡すため、その先頭の値を使う。
+    """
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if settings.IS_RAILWAY and forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.META["REMOTE_ADDR"]
+
+
+def reserve_answer_post(request, problem):
+    """同じIPアドレスから同じ問題への直近10分間の投稿が上限未満なら、今回の投稿を記録してTrueを返す。"""
+    ip_address = client_ip(request)
+    logs = AnswerPostLog.objects.filter(ip_address=ip_address, problem=problem)
+    logs.filter(created_at__lte=timezone.now() - ANSWER_POST_WINDOW).delete()
+    if logs.count() >= ANSWER_POST_LIMIT:
+        return False
+    AnswerPostLog.objects.create(ip_address=ip_address, problem=problem)
     return True

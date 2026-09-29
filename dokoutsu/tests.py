@@ -1129,3 +1129,79 @@ class RemainingLabelTests(TestCase):
         )
         response = self.client.get(reverse("answer_create", kwargs={"pk": problem.pk}))
         self.assertContains(response, "締切まであと30分")
+
+
+# --- 回答投稿の頻度制限(基本設計書「3.3 回答投稿の頻度制限」) ---
+
+
+class AnswerPostLimitTests(TestCase):
+    LIMIT_MESSAGE = "短時間に多くの回答が投稿されたため、受け付けられませんでした。時間をおいてもう一度お試しください"
+
+    def setUp(self):
+        author = User.objects.create_user(username="lim", email="lim@example.com", password="pass1234")
+        self.rank = Rank.objects.first()
+        self.problems = [
+            Problem.objects.create(
+                author=author, title=f"頻度{i}", board_sgf="AB[pd]", turn=Problem.BLACK,
+                deadline=timezone.now() + timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
+            )
+            for i in range(2)
+        ]
+
+    def _post(self, problem, **meta):
+        return self.client.post(
+            reverse("answer_create", kwargs={"pk": problem.pk}),
+            {"nickname": "連投", "rank": self.rank.pk, "move": "qf", "body": ""},
+            **meta,
+        )
+
+    def test_11th_post_within_10_minutes_rejected(self):
+        for _ in range(10):
+            self.assertContains(self._post(self.problems[0]), "投稿しました")
+        response = self._post(self.problems[0])
+        self.assertContains(response, self.LIMIT_MESSAGE)
+        self.assertEqual(AnswerPost.objects.filter(problem=self.problems[0]).count(), 10)
+
+    def test_limit_is_per_problem_and_per_ip(self):
+        for _ in range(10):
+            self._post(self.problems[0])
+        # 別の問題、別のIPアドレスからは投稿できる
+        self.assertContains(self._post(self.problems[1]), "投稿しました")
+        self.assertContains(self._post(self.problems[0], REMOTE_ADDR="192.0.2.10"), "投稿しました")
+
+    def test_limit_resets_after_10_minutes(self):
+        from .models import AnswerPostLog
+
+        for _ in range(10):
+            self._post(self.problems[0])
+        AnswerPostLog.objects.update(created_at=timezone.now() - timedelta(minutes=10, seconds=1))
+        self.assertContains(self._post(self.problems[0]), "投稿しました")
+        # 10分より古い記録(IPアドレス)は数える際に削除され、残らない
+        self.assertEqual(AnswerPostLog.objects.count(), 1)
+
+    def test_invalid_posts_are_not_counted(self):
+        from .models import AnswerPostLog
+
+        self.client.post(
+            reverse("answer_create", kwargs={"pk": self.problems[0].pk}),
+            {"nickname": "", "rank": self.rank.pk, "move": "qf", "body": ""},
+        )
+        self.assertEqual(AnswerPostLog.objects.count(), 0)
+
+    def test_railway_uses_leftmost_forwarded_for(self):
+        from django.test import RequestFactory, override_settings
+
+        from .services import client_ip
+
+        request = RequestFactory().get("/", HTTP_X_FORWARDED_FOR="203.0.113.5, 10.0.0.1", REMOTE_ADDR="10.0.0.2")
+        with override_settings(IS_RAILWAY=True):
+            self.assertEqual(client_ip(request), "203.0.113.5")
+        with override_settings(IS_RAILWAY=False):
+            self.assertEqual(client_ip(request), "10.0.0.2")
+
+    def test_problem_delete_removes_logs(self):
+        from .models import AnswerPostLog
+
+        self._post(self.problems[0])
+        self.problems[0].delete()
+        self.assertEqual(AnswerPostLog.objects.count(), 0)

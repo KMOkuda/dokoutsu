@@ -21,7 +21,12 @@ from .forms import (
     SignupForm,
 )
 from .models import AnswerPost, EmailSendLog, Problem
-from .services import EMAIL_SEND_LIMIT_MESSAGE, reserve_email_send
+from .services import (
+    ANSWER_POST_LIMIT_MESSAGE,
+    EMAIL_SEND_LIMIT_MESSAGE,
+    reserve_answer_post,
+    reserve_email_send,
+)
 
 User = get_user_model()
 
@@ -314,6 +319,8 @@ def answer_create_view(request, pk):
                 },
             )
         form = AnswerPostForm(request.POST, problem=problem)
+        if form.is_valid() and not reserve_answer_post(request, problem):
+            form.add_error(None, ANSWER_POST_LIMIT_MESSAGE)
         if form.is_valid():
             answer = form.save(commit=False)
             answer.problem = problem

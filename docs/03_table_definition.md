@@ -9,6 +9,7 @@ erDiagram
   User ||--o{ Problem : "作成する"
   Problem ||--o{ AnswerPost : "紐づく"
   Rank ||--o{ AnswerPost : "選択される"
+  Problem ||--o{ AnswerPostLog : "投稿を記録する"
 
   User {
     int id PK
@@ -40,6 +41,11 @@ erDiagram
     string category
     int sort_order
   }
+  AnswerPostLog {
+    int id PK
+    uuid problem_id FK
+    string ip_address
+  }
   EmailSendLog {
     int id PK
     string email
@@ -59,6 +65,7 @@ erDiagram
 | dokoutsu_problem | Problem | 問題(タイトル・局面データ・締切・公開方式) |
 | dokoutsu_answerpost | AnswerPost | 回答投稿(着手・コメント・ニックネーム・棋力) |
 | dokoutsu_rank | Rank | 棋力の選択肢(級・段の表示名と並び順) |
+| dokoutsu_answerpostlog | AnswerPostLog | 回答投稿の記録(投稿頻度の制限に使用。直近10分間のみ保持) |
 | dokoutsu_emailsendlog | EmailSendLog | メール送信の記録(送信回数の制限に使用。他のテーブルとは関連を持たない) |
 
 ### 1.3 命名規則
@@ -156,3 +163,18 @@ Djangoの標準認証機能が自動生成するテーブル。独自の拡張�
 | created_at | TIMESTAMP | NOT NULL | 現在日時 | 送信(要求)日時 |
 
 **索引**: (email, purpose, created_at)。直近24時間の回数を数える検索を速くするため
+
+### 2.6 dokoutsu_answerpostlog(回答投稿の記録)
+
+回答投稿の頻度を制限するため(基本設計書「3.3 回答投稿の頻度制限」)、回答投稿を受け付けるたびに1行記録する。
+IPアドレスは利用者に結びつく情報のため、直近10分間より古い行は、回数を数える際に削除する。
+回答投稿(dokoutsu_answerpost)にはIPアドレスを持たせない。
+
+| カラム名 | 型 | NULL | 初期値 | 説明 |
+|---|---|---|---|---|
+| id | SERIAL | NOT NULL | - | 主キー |
+| ip_address | VARCHAR(39) | NOT NULL | - | 投稿元のIPアドレス(IPv4/IPv6) |
+| problem_id | UUID | NOT NULL | - | 投稿先の問題。dokoutsu_problem.idへの外部キー。ON DELETE CASCADE(問題を削除すると記録も削除する) |
+| created_at | TIMESTAMP | NOT NULL | 現在日時 | 投稿日時 |
+
+**索引**: (ip_address, problem_id, created_at)。直近10分間の件数を数える検索を速くするため
