@@ -82,3 +82,19 @@ class AnswerPost(models.Model):
 
     def __str__(self):
         return f"{self.nickname} - {self.problem.title}"
+
+
+class EmailSendLog(models.Model):
+    """メール送信の記録(テーブル定義書 2.5 dokoutsu_emailsendlog)。送信回数の制限に使う。"""
+
+    SIGNUP = "signup"
+    PASSWORD_RESET = "password_reset"
+    PURPOSE_CHOICES = [(SIGNUP, "登録確認"), (PASSWORD_RESET, "パスワード再発行")]
+
+    email = models.EmailField(max_length=254)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "dokoutsu_emailsendlog"
+        indexes = [models.Index(fields=["email", "purpose", "created_at"])]

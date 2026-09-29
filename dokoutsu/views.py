@@ -20,7 +20,8 @@ from .forms import (
     ProblemForm,
     SignupForm,
 )
-from .models import AnswerPost, Problem
+from .models import AnswerPost, EmailSendLog, Problem
+from .services import EMAIL_SEND_LIMIT_MESSAGE, reserve_email_send
 
 User = get_user_model()
 
@@ -47,13 +48,18 @@ def _build_reset_link(request, user):
 
 
 def _remaining_label(deadline):
-    """締切までの残りを「N日」(24時間以上)/「N時間」(24時間未満)で返す。"""
+    """締切までの残りを「N日」(24時間以上)/「N時間」(1時間以上)/「N分」(1時間未満)で返す。
+
+    端数は切り捨てる。1分未満は「1分」とする(締切前なのに「0分」と表示しないため)。
+    """
     seconds = (deadline - timezone.now()).total_seconds()
     if seconds <= 0:
         return None
     if seconds >= 24 * 3600:
         return f"{int(seconds // (24 * 3600))}日"
-    return f"{max(1, int(seconds // 3600))}時間"
+    if seconds >= 3600:
+        return f"{int(seconds // 3600)}時間"
+    return f"{max(1, int(seconds // 60))}分"
 
 
 def _answer_url(request, problem):
@@ -79,6 +85,11 @@ def signup_view(request):
         return redirect("active_problems")
     if request.method == "POST":
         form = SignupForm(request.POST)
+        if form.is_valid() and not reserve_email_send(
+            form.cleaned_data["email"], EmailSendLog.SIGNUP
+        ):
+            # 上限に達している場合は、未確認アカウントの作成・置き換えも行わない
+            form.add_error(None, EMAIL_SEND_LIMIT_MESSAGE)
         if form.is_valid():
             user = form.save()
             link = _build_activation_link(request, user)
@@ -99,9 +110,12 @@ def signup_sent_view(request):
     email = request.session.get("signup_email")
     if not email:
         return redirect("signup")
+    limit_error = None
     if request.method == "POST":
         user = User.objects.filter(email=email, is_active=False).first()
-        if user:
+        if user and not reserve_email_send(email, EmailSendLog.SIGNUP):
+            limit_error = EMAIL_SEND_LIMIT_MESSAGE
+        elif user:
             link = _build_activation_link(request, user)
             send_mail(
                 "どこ打つくん 会員登録の確認(再送)",
@@ -110,7 +124,9 @@ def signup_sent_view(request):
                 [user.email],
             )
     return render(
-        request, "accounts/signup_sent.html", {"email": email, "hide_menu": True}
+        request,
+        "accounts/signup_sent.html",
+        {"email": email, "limit_error": limit_error, "hide_menu": True},
     )
 
 
@@ -189,9 +205,15 @@ def password_reset_view(request):
     if request.user.is_authenticated:
         return redirect("active_problems")
     sent_email = request.session.get("password_reset_email")
+    limit_error = None
     if request.method == "POST":
         form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
+        # 登録のないメールアドレスも同じように数え、同じ表示にする(登録の有無を推測させないため)
+        if form.is_valid() and not reserve_email_send(
+            form.cleaned_data["email"], EmailSendLog.PASSWORD_RESET
+        ):
+            limit_error = EMAIL_SEND_LIMIT_MESSAGE
+        elif form.is_valid():
             email = form.cleaned_data["email"]
             user = User.objects.filter(email=email).first()
             if user is not None:
@@ -209,7 +231,7 @@ def password_reset_view(request):
     return render(
         request,
         "accounts/password_reset.html",
-        {"form": form, "sent_email": sent_email, "hide_menu": True},
+        {"form": form, "sent_email": sent_email, "limit_error": limit_error, "hide_menu": True},
     )
 
 

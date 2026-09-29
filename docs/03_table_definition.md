@@ -40,6 +40,11 @@ erDiagram
     string category
     int sort_order
   }
+  EmailSendLog {
+    int id PK
+    string email
+    string purpose
+  }
 ```
 
 > ER図は関係性の把握に必要なカラムのみ示す。作成日時・更新日時
@@ -54,6 +59,7 @@ erDiagram
 | dokoutsu_problem | Problem | 問題(タイトル・局面データ・締切・公開方式) |
 | dokoutsu_answerpost | AnswerPost | 回答投稿(着手・コメント・ニックネーム・棋力) |
 | dokoutsu_rank | Rank | 棋力の選択肢(級・段の表示名と並び順) |
+| dokoutsu_emailsendlog | EmailSendLog | メール送信の記録(送信回数の制限に使用。他のテーブルとは関連を持たない) |
 
 ### 1.3 命名規則
 
@@ -136,3 +142,17 @@ Djangoの標準認証機能が自動生成するテーブル。独自の拡張�
 |---|---|---|
 | 1〜15 | kyu | 1級, 2級, 3級, 4級, 5級, 6級, 7級, 8級, 9級, 10級, 11級, 12級, 13級, 14級, 15級 |
 | 16〜23 | dan | 初段, 2段, 3段, 4段, 5段, 6段, 7段, 8段 |
+
+### 2.5 dokoutsu_emailsendlog(メール送信の記録)
+
+登録確認メール・パスワード再発行メールの送信回数を制限するため(基本設計書「3.2 メール送信回数の制限」)、
+送信(または送信要求)のたびに1行記録する。直近24時間より古い行は、回数を数える際に削除する。
+
+| カラム名 | 型 | NULL | 初期値 | 説明 |
+|---|---|---|---|---|
+| id | SERIAL | NOT NULL | - | 主キー |
+| email | VARCHAR(254) | NOT NULL | - | 送信先メールアドレス。登録のないメールアドレスも記録するため、auth_userへの外部キーにはしない |
+| purpose | VARCHAR(20) | NOT NULL | - | 機能。`signup`(登録確認) / `password_reset`(パスワード再発行) |
+| created_at | TIMESTAMP | NOT NULL | 現在日時 | 送信(要求)日時 |
+
+**索引**: (email, purpose, created_at)。直近24時間の回数を数える検索を速くするため
