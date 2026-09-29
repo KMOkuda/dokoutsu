@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>回答する</title>
+</head>
+<body>
+<main>
+
+  <section aria-labelledby="answer-heading">
+    <header>
+      <button aria-label="戻る">‹</button>
+      <span>どこ打つくん</span>
+      <nav aria-label="メニュー">
+        <button aria-label="メニューを開く">☰</button>
+      </nav>
+    </header>
+
+    <h1 id="answer-heading">初手はどこに打つべきか</h1>
+    <p>投稿者：ごばん太郎</p>
+
+    <form>
+      <div>
+        <label for="answer-nickname">ニックネーム</label>
+        <input id="answer-nickname" type="text" name="nickname">
+      </div>
+      <div>
+        <label for="answer-rank">棋力</label>
+        <select id="answer-rank" name="rank">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+      <p>黒番</p>
+    </form>
+
+    <section aria-label="盤面">
+      <table role="grid">
+        <caption>19路盤</caption>
+        <tbody>
+          <tr><td></td></tr>
+        </tbody>
+      </table>
+      <p>打ちたい場所をタップしてください。</p>
+    </section>
+
+    <div>
+      <label for="answer-comment">コメント</label>
+      <input id="answer-comment" type="text" name="comment">
+    </div>
+
+    <button type="submit" disabled>この手で投稿する</button>
+  </section>
+
+  <section aria-labelledby="answer-posted-heading" hidden>
+    <header>
+      <button aria-label="戻る">‹</button>
+      <span>どこ打つくん</span>
+    </header>
+    <h1 id="answer-posted-heading">投稿しました！</h1>
+    <p></p>
+    <a href="answer-list.html">みんなの回答を見る</a>
+  </section>
+
+</main>
+
+</body>
+</html>

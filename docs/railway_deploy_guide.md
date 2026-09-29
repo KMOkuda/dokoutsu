@@ -109,3 +109,22 @@ Railwayのサービス設定には`Custom Start Command`という欄があるが
 - `dokoutsu`リポジトリ: 最小限のDjangoプロジェクト構成(`smoketest`は削除済み)
 - Railway: `dokoutsu`(アプリ)と`Postgres`の2サービスが同一Project内で稼働中、`DATABASE_URL`紐付け済み
 - 公開URL: `https://dokoutsu-production.up.railway.app`(動作確認用の表示のみ、本実装はこれから)
+
+---
+
+## 7. 将来のAWS(Docker)移行を見据えた設計判断
+
+第1イテレーションはRailwayで運用するが、第2イテレーション以降、本番環境は
+AWS上でDockerを用いて運用する計画がある(想定構成: EC2 + Docker Compose、
+1台のサーバー上で複数プロジェクトをコンテナとして並行運用)。Railwayは
+移行後もテスト・検証用の環境として残す。
+
+この移行を見据え、Railway上の運用でも以下の設計判断を採用している。
+
+| 判断 | 理由 |
+|---|---|
+| 起動コマンドを `Procfile` に明記する(Railwayダッシュボードの`Custom Start Command`欄には書かない) | コードとして残るため、他のサーバー環境(Dockerコンテナ内の`CMD`等)に移行する際も同じコマンドをそのまま使える |
+| `SECRET_KEY`・`DATABASE_URL`等の秘密情報を環境変数で管理する | Dockerでも環境変数による設定注入が標準的な方法であり、構成を変えずに移行できる(セキュリティ方針「2.6 秘密情報の管理」にも合致) |
+
+具体的なDocker構成(ネットワーク設定、HTTPS証明書、ドメイン、リバースプロキシ等)は、
+第2イテレーションで検討する。

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>問題を作る</title>
+</head>
+<body>
+<main>
+
+  <section aria-labelledby="create-heading">
+    <header>
+      <button aria-label="戻る">‹</button>
+      <span>どこ打つくん</span>
+    </header>
+
+    <h1 id="create-heading">新しく問題を作る</h1>
+
+    <form>
+      <div>
+        <label for="title">問題のタイトル</label>
+        <input id="title" type="text" name="title">
+      </div>
+
+      <div>
+        <label for="deadline-date">出題の締切</label>
+        <input id="deadline-date" type="date" name="deadline-date">
+        <select name="deadline-hour" aria-label="時">
+          <option value="">時</option>
+        </select>
+        <select name="deadline-minute" aria-label="分">
+          <option value="">分</option>
+        </select>
+      </div>
+
+      <fieldset>
+        <legend>回答する手番</legend>
+        <label><input type="radio" name="turn" value="black">黒番</label>
+        <label><input type="radio" name="turn" value="white">白番</label>
+      </fieldset>
+    </form>
+
+    <section aria-label="盤面エディタ">
+      <table role="grid">
+        <caption>19路盤</caption>
+        <tbody>
+          <tr><td></td></tr>
+        </tbody>
+      </table>
+      <p>交点をタップして石を置いてください。</p>
+    </section>
+
+    <div role="toolbar" aria-label="石を選ぶ">
+      <button type="button">黒石</button>
+      <button type="button">白石</button>
+      <button type="button" aria-label="消す">消す</button>
+      <button type="button" aria-label="一手戻す">戻す</button>
+      <button type="button">すべて消す</button>
+    </div>
+
+    <button type="submit">出題する</button>
+  </section>
+
+  <section aria-labelledby="create-confirm-heading" hidden>
+    <header>
+      <button aria-label="戻る">‹</button>
+      <span>どこ打つくん</span>
+    </header>
+    <h1 id="create-confirm-heading">新しく問題を作る</h1>
+
+    <section aria-label="盤面プレビュー">
+      <table role="grid">
+        <caption>19路盤</caption>
+        <tbody>
+          <tr><td></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <dialog open aria-labelledby="confirm-heading">
+      <h2 id="confirm-heading">この内容で出題しますか？</h2>
+      <dl>
+        <dt>タイトル</dt>
+        <dd></dd>
+        <dt>締切</dt>
+        <dd></dd>
+        <dt>手番</dt>
+        <dd></dd>
+      </dl>
+      <p>出題後は盤面とタイトルを変更できません。</p>
+      <button type="button">出題する</button>
+      <button type="button">キャンセル</button>
+    </dialog>
+  </section>
+
+</main>
+
+</body>
+</html>

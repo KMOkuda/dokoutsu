@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>出題中の問題</title>
+</head>
+<body>
+<main>
+  <header>
+    <button aria-label="戻る">‹</button>
+    <span>どこ打つくん</span>
+    <nav aria-label="メニュー">
+      <button aria-label="メニューを開く">☰</button>
+      <ul hidden>
+        <li><a href="#">出題中の問題</a></li>
+        <li><a href="#">過去の問題</a></li>
+        <li><a href="#">ログアウト</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section aria-labelledby="active-heading">
+    <h1 id="active-heading">出題中の問題</h1>
+
+    <ul>
+      <li>
+        <figure>
+                <table role="grid">
+        <caption>盤面サムネイル</caption>
+        <tbody>
+          <tr><td></td></tr>
+        </tbody>
+      </table>
+          <figcaption>
+            <p>初手はどこに打つべきか</p>
+            <p>黒番 · 回答 32件</p>
+            <p>残り3日（8月20日 23:00まで）</p>
+          </figcaption>
+        </figure>
+        <div>
+          <a href="problem-creation.html">問題</a>
+          <a href="answer-list.html">回答<span>32</span></a>
+          <button aria-label="操作">⋯</button>
+          <button aria-label="シェア">共有</button>
+        </div>
+      </li>
+    </ul>
+
+    <dialog aria-labelledby="active-menu-heading" hidden>
+      <h2 id="active-menu-heading">隅の打ち込みへの対応</h2>
+      <ul>
+        <li><button type="button">締切を変更する</button></li>
+        <li><button type="button">出題を取り下げる</button></li>
+      </ul>
+      <button type="button">閉じる</button>
+    </dialog>
+
+    <a href="problem-creation.html">＋ 新しく問題を作る</a>
+  </section>
+</main>
+
+</body>
+</html>

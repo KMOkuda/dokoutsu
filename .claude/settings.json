@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py migrate*)",
+      "Bash(python manage.py runserver*)",
+      "Bash(python manage.py test*)",
+      "Bash(python manage.py makemigrations*)",
+      "Bash(python manage.py createsuperuser*)",
+      "Bash(pip install*)",
+      "Bash(docker compose *)",
+      "Bash(railway *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git add*)",
+      "Bash(git commit*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in *.py) ruff format \"$f\" ;; esac; } 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in *.md) python3 .claude/hooks/check_doc_refs.py \"$f\" ;; esac; } || true"
+          }
+        ]
+      }
+    ]
+  }
+}
