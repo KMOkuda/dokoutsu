@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/problem_list.css">
+<link rel="stylesheet" href="/static/css/share.css">
+<link rel="stylesheet" href="/static/css/dialogs.css">
+{% endblock %}
 {% block content %}
 <h1 class="list-title">受付終了の問題</h1>
 {% if problems %}
@@ -38,6 +43,9 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/goban.js"></script>
+<script src="/static/js/goban_board.js"></script>
+<script src="/static/js/goban_render.js"></script>
+<script src="/static/js/goban_viewer.js"></script>
+<script src="/static/js/share.js"></script>
 <script src="/static/js/sheets.js"></script>
 {% endblock %}

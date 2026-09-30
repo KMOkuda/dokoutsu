@@ -10,7 +10,7 @@
 |---|---|
 | 画面コード | M |
 | 対応要件 | 画面遷移の共通導線(個別の機能要件には対応しない) |
-| テストコード | `dokoutsu/tests.py` `CommonMenuTests` |
+| テストコード | `dokoutsu/tests/test_menu.py` |
 
 ---
 

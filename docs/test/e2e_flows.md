@@ -4,7 +4,7 @@
 > HTTPリクエスト/レスポンス単位の検証を対象とする。
 > 本書は実際のブラウザで画面を操作し、複数画面をまたぐ一連の流れを検証する。
 >
-> テストコード: `dokoutsu/e2e_tests.py`(Playwright + Django StaticLiveServerTestCase)
+> テストコード: `dokoutsu/e2e/`(Playwright + Django StaticLiveServerTestCase)。共通の準備は`base.py`、フローごとに`e2e_auth.py`(E1・E6・E7)、`e2e_problem.py`(E2・E4)、`e2e_answer.py`(E3)、`e2e_menu.py`(E5)
 > 各テストケースの実行時、主要な画面状態でスクリーンショットを取得する
 > (`docs/test/screenshots/(テストケースNo)_(状態).png`)。
 
@@ -15,7 +15,7 @@
 | 項目 | 内容 |
 |---|---|
 | 対象 | 3a, 3b, 6a, 4a, 2a, 2b, 2c, 2d, M(共通メニュー) |
-| 実行方法 | `python3 manage.py test dokoutsu.e2e_tests` |
+| 実行方法 | `python3 manage.py test dokoutsu.e2e -p "e2e_*.py"` |
 | 前提 | Playwright(Chromium)がインストール済みであること |
 
 ---

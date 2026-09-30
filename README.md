@@ -34,7 +34,7 @@ Railwayで公開中(`docs/railway_deploy_guide.md`)。進め方はCLAUDE.mdの�
 
 ```
 python3 manage.py test dokoutsu            # サーバー側のテスト
-python3 manage.py test dokoutsu.e2e_tests  # 画面操作のE2Eテスト(Playwright + Chromium が必要)
+python3 manage.py test dokoutsu.e2e -p "e2e_*.py"  # 画面操作のE2Eテスト(Playwright + Chromium が必要)
 ```
 
 E2Eテストの内容は`docs/test/e2e_flows.md`、実行時のスクリーンショットは`docs/test/screenshots/`。

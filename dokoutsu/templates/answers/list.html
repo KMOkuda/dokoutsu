@@ -1,10 +1,13 @@
 {% extends "base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/answer.css">
+{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
-<div class="problem-heading">
+<header class="problem-heading">
   <h1>{{ problem.title }}</h1>
   <p class="muted">投稿者：{{ problem.author.username }}</p>
-</div>
+</header>
 {% if can_view %}
   <div class="turn-row">
     <span class="turn-badge">{% if problem.turn == 'black' %}<i class="fa-solid fa-circle" aria-hidden="true"></i>{% else %}<i class="fa-regular fa-circle" aria-hidden="true"></i>{% endif %} {{ problem.get_turn_display }}</span>
@@ -33,5 +36,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/goban.js"></script>
+<script src="/static/js/goban_board.js"></script>
+<script src="/static/js/goban_render.js"></script>
+<script src="/static/js/goban_viewer.js"></script>
 {% endblock %}

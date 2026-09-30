@@ -1,0 +1,96 @@
+/* 共通メニュー(詳細設計書 M)
+   読み込む画面: 全画面(base.html) */
+
+/* --- 共通メニュー(右からのドロワー) --- */
+
+.menu {
+  margin-left: auto;
+}
+
+.menu-open,
+.menu-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  padding: var(--spacing-xs);
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--color-overlay);
+}
+
+.menu-list {
+  position: fixed;
+  top: var(--header-height);
+  bottom: 0;
+  right: max(0px, calc((100vw - var(--screen-width)) / 2));
+  z-index: 31;
+  width: min(72vw, 310px);
+  background: #f7fbff;
+  color: var(--color-text);
+}
+
+html.menu-opened,
+html.menu-opened body {
+  overflow: hidden;
+}
+
+.menu-overlay[hidden],
+.menu-list[hidden] {
+  display: none;
+}
+
+/* 開いている間は暗転したヘッダーの右端に閉じるボタンを重ねる */
+.menu-list-header {
+  position: fixed;
+  top: 0;
+  right: max(0px, calc((100vw - var(--screen-width)) / 2));
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--spacing-md);
+}
+
+.menu-list-header .app-name {
+  display: none;
+}
+
+.menu-list a,
+.menu-list .menu-logout {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md);
+  border: none;
+  border-bottom: 1px solid var(--color-divider);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  text-align: left;
+  text-decoration: none;
+  height: auto;
+  line-height: normal;
+}
+
+.menu-list a[aria-current="page"]::after {
+  content: "\f0d7";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  float: right;
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
+.menu-list .menu-logout {
+  font-weight: normal;
+  text-align: left;
+}
+
+.menu-open[aria-expanded="true"] {
+  visibility: hidden;
+}

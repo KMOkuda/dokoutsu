@@ -1,0 +1,53 @@
+/* ボタンとエラーメッセージ
+   読み込む画面: 全画面(base.html) */
+
+/* --- ボタン --- */
+
+button,
+.btn-primary,
+.btn-secondary {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button[type="submit"],
+.btn-primary {
+  display: block;
+  width: 100%;
+  height: var(--control-height);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  text-align: center;
+  line-height: var(--control-height);
+  text-decoration: none;
+}
+
+button[type="submit"]:disabled {
+  background: var(--color-primary-pale);
+  cursor: default;
+}
+
+.btn-secondary,
+button.btn-secondary {
+  display: block;
+  width: 100%;
+  height: var(--control-height);
+  margin-top: var(--spacing-md);
+  border: 2px solid var(--color-divider);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+.errorlist {
+  list-style: none;
+  margin: var(--spacing-xs) 0 0;
+  padding: 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}

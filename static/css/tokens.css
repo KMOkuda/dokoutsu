@@ -1,0 +1,41 @@
+/* デザイン参考PDF(docs/design/screens_wireframe/*_design.pdf)に基づくトークン定義。
+   正確な値への調整はここを直すだけで済むようにする。 */
+:root {
+  --color-primary: #0b66b8;
+  --color-primary-dark: #084f8f;
+  --color-primary-pale: #86b3d9;
+  --color-primary-tint: #e6f0fa;
+  --color-link: #0d3f6e;
+  --color-text: #1a1a1a;
+  --color-muted: #6b6b6b;
+  --color-line: #222222;
+  --color-divider: #bdbdbd;
+  --color-bg: #f1f1f1;
+  --color-surface: #ffffff;
+  --color-board: #f7f4f1;
+  --color-danger: #e0321c;
+  --color-overlay: rgba(0, 0, 0, 0.45);
+  --color-line-app: #06c755;
+
+  --font-base: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-xs: 11px;
+  --font-size-title: 17px;
+  --font-size-app: 21px;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+
+  --radius: 0;
+  --border-input: 2px solid var(--color-line);
+  --control-height: 40px;
+  --header-height: 52px;
+  --screen-width: 430px;
+}
+
+* {
+  box-sizing: border-box;
+}

@@ -2,6 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Rank(models.Model):
@@ -59,8 +60,6 @@ class Problem(models.Model):
     @property
     def is_open(self):
         """受付中かどうか(基本設計書 3. 要件の実現方式)"""
-        from django.utils import timezone
-
         return self.closed_at is None and self.deadline > timezone.now()
 
 

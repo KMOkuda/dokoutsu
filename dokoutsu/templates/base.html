@@ -9,7 +9,14 @@
 <link rel="stylesheet" href="/static/vendor/fontawesome/css/solid.min.css">
 <link rel="stylesheet" href="/static/vendor/fontawesome/css/regular.min.css">
 <link rel="stylesheet" href="/static/vendor/fontawesome/css/brands.min.css">
-<link rel="stylesheet" href="/static/css/style.css">
+{# 全画面で使うCSS。画面ごとのCSSは各テンプレートの styles ブロックで読み込む #}
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/base.css">
+<link rel="stylesheet" href="/static/css/forms.css">
+<link rel="stylesheet" href="/static/css/buttons.css">
+<link rel="stylesheet" href="/static/css/goban.css">
+<link rel="stylesheet" href="/static/css/menu.css">
+{% block styles %}{% endblock %}
 </head>
 <body>
 <header class="app-header">

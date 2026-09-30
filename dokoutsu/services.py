@@ -52,3 +52,19 @@ def reserve_answer_post(request, problem):
         return False
     AnswerPostLog.objects.create(ip_address=ip_address, problem=problem)
     return True
+
+
+# 締切までの残り表示(詳細設計書 2a・2c「2.2 表示項目」)。回答投稿画面と受付中の問題一覧で使う
+def remaining_label(deadline):
+    """締切までの残りを「N日」(24時間以上)/「N時間」(1時間以上)/「N分」(1時間未満)で返す。
+
+    端数は切り捨てる。1分未満は「1分」とする(締切前なのに「0分」と表示しないため)。
+    """
+    seconds = (deadline - timezone.now()).total_seconds()
+    if seconds <= 0:
+        return None
+    if seconds >= 24 * 3600:
+        return f"{int(seconds // (24 * 3600))}日"
+    if seconds >= 3600:
+        return f"{int(seconds // 3600)}時間"
+    return f"{max(1, int(seconds // 60))}分"

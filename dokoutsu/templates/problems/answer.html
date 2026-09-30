@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/answer.css">
+{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
-<div class="problem-heading">
+<header class="problem-heading">
   <h1>{{ problem.title }}</h1>
   <p class="muted">投稿者：{{ problem.author.username }}</p>
   {% if is_open %}
@@ -9,7 +12,7 @@
   {% else %}
     <p class="accent-small">締切を過ぎました</p>
   {% endif %}
-</div>
+</header>
 
 {% if answered %}
   {% if answered_error %}<p class="errorlist answer-errors" role="alert">{{ answered_error }}</p>{% endif %}
@@ -88,6 +91,9 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/goban.js"></script>
+<script src="/static/js/goban_board.js"></script>
+<script src="/static/js/goban_render.js"></script>
+<script src="/static/js/goban_answer.js"></script>
+<script src="/static/js/goban_viewer.js"></script>
 <script src="/static/js/rank_tabs.js"></script>
 {% endblock %}

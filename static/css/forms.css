@@ -1,0 +1,187 @@
+/* フォーム(入力欄・選択肢・締切欄)
+   読み込む画面: 全画面(base.html) */
+
+/* --- フォーム --- */
+
+.field {
+  margin: 0 0 var(--spacing-md);
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+label,
+legend {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+  padding: 0;
+}
+
+.field-hint {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select,
+textarea {
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--spacing-sm);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  border: var(--border-input);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+input::placeholder {
+  color: #9a9a9a;
+}
+
+input:disabled,
+select:disabled {
+  border-color: var(--color-divider);
+  color: var(--color-muted);
+  background: var(--color-bg);
+}
+
+/* プルダウンの▾はデザインどおり右上寄りの小さな三角 */
+select,
+.date-field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0h8L4 6z' fill='%230b66b8'/%3E%3C/svg%3E");
+  background-position: right 10px top 11px;
+  background-size: 7px 5px;
+  background-repeat: no-repeat;
+  padding-right: 24px;
+  font-weight: bold;
+}
+
+.deadline-row select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M0 0h8L4 6z' fill='%239a9a9a'/%3E%3C/svg%3E");
+}
+
+.deadline-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* 日付は表示用テキストの上に透明なネイティブ入力を重ね、タップでカレンダーを開く */
+.date-field {
+  position: relative;
+  flex: 0 0 48%;
+  display: flex;
+  align-items: center;
+  height: var(--control-height);
+  padding-left: var(--spacing-sm);
+  border: var(--border-input);
+  background-color: var(--color-surface);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.date-field input[type="date"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+}
+
+.date-display.is-empty {
+  color: #9a9a9a;
+  font-weight: normal;
+}
+
+.deadline-row select {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+}
+
+.inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: 0;
+}
+
+/* 回答公開: 四角いチェックボックス風の選択肢 */
+.check-list label.check-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+}
+
+.check-item input,
+.toggle-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.check-item span::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: var(--spacing-sm);
+  vertical-align: -2px;
+  border: 2px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+/* 「A + B」は、Aの直後に並ぶ兄弟要素Bを指す。選択されたラジオボタン(非表示)の直後のspanに印を付ける */
+.check-item input:checked + span::before {
+  border-color: var(--color-primary);
+  background: radial-gradient(var(--color-primary) 45%, var(--color-surface) 50%);
+}
+
+/* 回答する手番: トグルボタン */
+.toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.toggle-group legend {
+  width: 100%;
+}
+
+.toggle-item span {
+  display: inline-block;
+  min-width: 60px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--border-input);
+  background: var(--color-surface);
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 選択されたラジオボタン(非表示)の直後にある表示用のspanを、選択中の見た目にする */
+.toggle-item input:checked + span {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint);
+  color: var(--color-link);
+}

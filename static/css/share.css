@@ -1,0 +1,27 @@
+/* シェアボタンのアイコン(LINE・X・リンク等)
+   読み込む画面: problems/created.html、problems/active.html、problems/archive.html */
+
+.share-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
+  font-weight: bold;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.share-line {
+  background: var(--color-line-app);
+  border-color: var(--color-line-app);
+  color: #fff;
+}
+
+.share-x {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}

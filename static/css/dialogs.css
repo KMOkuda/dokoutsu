@@ -1,0 +1,162 @@
+/* ボトムシート・確認ダイアログ
+   読み込む画面: problems/new.html、problems/active.html、problems/archive.html */
+
+/* --- ボトムシート・確認ダイアログ --- */
+
+dialog {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--color-text);
+}
+
+dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+dialog.sheet {
+  width: 100%;
+  max-width: var(--screen-width);
+  margin: auto auto 0;
+  background: var(--color-surface);
+}
+
+.sheet-header {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.sheet-title {
+  font-weight: bold;
+}
+
+.sheet-sub {
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.sheet-item {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  text-align: left;
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.sheet-item i {
+  width: 1.4em;
+  margin-right: var(--spacing-sm);
+  text-align: center;
+}
+
+.sheet-danger {
+  color: var(--color-danger);
+}
+
+.sheet-cancel {
+  font-weight: normal;
+  color: var(--color-muted);
+  border-bottom: none;
+}
+
+/* シェアシートのアイコンをGridで4列に等分して並べる */
+.share-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: var(--spacing-md) var(--spacing-sm);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.share-grid a,
+.share-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+}
+
+.share-grid .share-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+}
+
+dialog.confirm {
+  width: calc(100% - 64px);
+  max-width: 340px;
+  background: var(--color-surface);
+}
+
+.confirm-title {
+  font-weight: bold;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-sm);
+}
+
+.confirm-body {
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+  color: var(--color-text);
+  padding: 0 var(--spacing-lg) var(--spacing-md);
+}
+
+/* 出題の確認の要約。Gridで「項目名(内容に合わせた幅)」と「内容(残りの幅)」の2列にそろえる */
+.confirm-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-xs) var(--spacing-md);
+  margin: 0;
+  padding: 0 var(--spacing-lg) var(--spacing-md);
+  font-size: var(--font-size-xs);
+}
+
+.confirm-summary dt {
+  color: var(--color-muted);
+}
+
+.confirm-summary dd {
+  margin: 0;
+  font-weight: bold;
+}
+
+dialog.confirm button[type="submit"],
+.confirm-primary,
+.confirm-danger,
+.confirm-cancel {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--spacing-lg);
+  border: none;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  line-height: 44px;
+}
+
+.confirm-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+dialog.confirm button.confirm-danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.confirm-cancel {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-top: 1px solid var(--color-divider);
+}

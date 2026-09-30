@@ -1,6 +1,11 @@
 {% extends "base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/problem_created.css">
+<link rel="stylesheet" href="/static/css/problem_list.css">
+<link rel="stylesheet" href="/static/css/share.css">
+{% endblock %}
 {% block content %}
-<div class="form-section">
+<section class="form-section">
   <h1 class="accent-title">出題しました。</h1>
   <p class="muted">{{ problem.deadline|date:"n月j日（D）H:i" }} まで回答を受け付けます。</p>
   <a class="problem-link-card" href="{% url 'answer_create' pk=problem.pk %}">
@@ -11,7 +16,7 @@
     </span>
     <span class="chevron"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
   </a>
-</div>
+</section>
 
 <section class="form-section divider-top" aria-labelledby="share-heading">
   <h2 id="share-heading" class="section-title">友達に問題をシェアする</h2>
@@ -24,28 +29,14 @@
   <p class="share-url">{{ answer_url }}</p>
 </section>
 
-<div class="form-section divider-top">
+<section class="form-section divider-top">
   <a class="text-link" href="{% url 'problem_new' %}">続けて問題を作る <i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/goban.js"></script>
-<script>
-(function () {
-  var box = document.querySelector(".share-buttons");
-  var url = box.dataset.shareUrl;
-  var title = box.dataset.shareTitle;
-  var text = encodeURIComponent(title + " " + url);
-  box.querySelector("[data-share='line']").href = "https://line.me/R/msg/text/?" + text;
-  box.querySelector("[data-share='x']").href = "https://twitter.com/intent/tweet?text=" + text;
-  box.querySelector("[data-share='copy']").addEventListener("click", function () {
-    if (navigator.clipboard) navigator.clipboard.writeText(url);
-    this.querySelector("[data-copy-label]").textContent = "コピーしました";
-  });
-  box.querySelector("[data-share='native']").addEventListener("click", function () {
-    if (navigator.share) navigator.share({ title: title, url: url });
-  });
-})();
-</script>
+<script src="/static/js/goban_board.js"></script>
+<script src="/static/js/goban_render.js"></script>
+<script src="/static/js/goban_viewer.js"></script>
+<script src="/static/js/share.js"></script>
 {% endblock %}

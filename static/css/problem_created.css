@@ -1,0 +1,56 @@
+/* 出題完了画面(4a)
+   読み込む画面: problems/created.html */
+
+/* --- 出題完了画面 --- */
+
+.problem-link-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: var(--border-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.problem-link-card .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.chevron {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+/* Gridで2列×2行に並べる(LINE・X/リンク・その他)。行と列を同時に指定できる点がFlexboxと違う */
+.share-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 48px;
+  padding: 0 var(--spacing-sm);
+  border: var(--border-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.share-url {
+  margin-top: var(--spacing-sm);
+  color: var(--color-muted);
+  font-size: var(--font-size-xs);
+  word-break: break-all;
+}

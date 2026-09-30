@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="/static/css/problem_new.css">
+<link rel="stylesheet" href="/static/css/dialogs.css">
+{% endblock %}
 {% block content %}
 <form method="post" id="problem-form" data-required-fields="title deadline_date board_sgf" novalidate>
   {% csrf_token %}
@@ -68,6 +72,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/goban.js"></script>
+<script src="/static/js/goban_board.js"></script>
+<script src="/static/js/goban_render.js"></script>
+<script src="/static/js/goban_editor.js"></script>
 <script src="/static/js/problem_new.js"></script>
 {% endblock %}
