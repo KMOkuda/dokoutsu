@@ -106,7 +106,7 @@ class SignupTests(TestCase):
         self.assertContains(response, "組み合わせてください")
 
     def test_invalid_activation_link_rejected(self):
-        """3a E6・S4: 確認用URLの期限切れ・無効(書き換えたトークン)では有効化せず、再登録を案内する"""
+        """3a E6・K3: 確認用URLの期限切れ・無効(書き換えたトークン)では有効化せず、再登録を案内する"""
         user = User.objects.create_user(
             username="target", email="target@example.com", password="pass1234", is_active=False
         )
@@ -128,7 +128,7 @@ class SignupTests(TestCase):
         self.assertFalse(user.is_active)
 
     def test_activation_link_valid_within_24_hours(self):
-        """3a S2: 確認リンクは24時間以内なら有効"""
+        """3a K1: 確認リンクは24時間以内なら有効"""
         import time
 
         self.client.post(
@@ -143,7 +143,7 @@ class SignupTests(TestCase):
         self.assertTrue(User.objects.get(username="e24").is_active)
 
     def test_activation_link_expires_after_24_hours(self):
-        """3a S3: 確認リンクは24時間を過ぎると無効"""
+        """3a K2: 確認リンクは24時間を過ぎると無効"""
         import time
 
         self.client.post(

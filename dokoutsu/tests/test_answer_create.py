@@ -137,7 +137,7 @@ class RankCategoryTests(TestCase):
     """2a 回答投稿: 棋力の級/段タブ"""
 
     def test_rank_options_have_category_and_tabs(self):
-        """2a S1: 棋力の級/段タブ"""
+        """2a D1: 棋力の級/段タブ"""
         author = User.objects.create_user(username="rk", email="rk@example.com", password="pass1234")
         problem = Problem.objects.create(
             author=author, title="棋力", board_sgf="AB[pd]", turn=Problem.BLACK,

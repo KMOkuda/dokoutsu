@@ -38,7 +38,7 @@ class AuthFlowTests(E2ETestCase):
         page.click("button:has-text('ログイン')")
         page.wait_for_url("**/problems/active")
         self.assertIn('aria-label="共通メニュー"', page.content())
-        self._shot("E1_3_active_problems_after_login")
+        self._shot("E1_4_active_problems_after_login")
     def test_input_errors_displayed_flow(self):
         """E6: 送信ボタンの活性条件と入力エラーの表示(docs/test/e2e_flows.md の手順とスクリーンショット E6_*)"""
         User.objects.create_user(

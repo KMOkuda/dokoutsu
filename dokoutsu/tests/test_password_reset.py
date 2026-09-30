@@ -136,12 +136,12 @@ class PasswordResetTimeoutTests(TestCase):
             return self.client.get(self.path)
 
     def test_valid_within_60_minutes(self):
-        """6a S3: 再設定リンクは60分以内なら有効"""
+        """6a K1: 再設定リンクは60分以内なら有効"""
         response = self._get_after(59)
         self.assertContains(response, "新しいパスワード")
         self.assertNotContains(response, INVALID_LINK_MESSAGE)
 
     def test_invalid_after_60_minutes(self):
-        """6a S4: 再設定リンクは60分を過ぎると無効"""
+        """6a K2: 再設定リンクは60分を過ぎると無効"""
         response = self._get_after(61)
         assert_invalid_link_page(self, response)

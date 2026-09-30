@@ -44,7 +44,7 @@ class AnswerFlowTests(E2ETestCase):
         self.assertTrue(all(label.endswith("級") for label in rank_labels()))
         page.click(".rank-tabs button:has-text('段')")
         self.assertTrue(all(label.endswith("段") for label in rank_labels()))
-        self._shot("E3_1b_rank_dan_tab")
+        self._shot("E3_2_rank_dan_tab")
         page.click(".rank-tabs button:has-text('級')")
         page.select_option("#id_rank", label="15級")
         page.fill("#id_body", "天元が急場")
@@ -54,7 +54,7 @@ class AnswerFlowTests(E2ETestCase):
         box = board.bounding_box()
         page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         page.mouse.down()
-        self._shot("E3_2_guide_on_press")
+        self._shot("E3_3_guide_on_press")
         page.mouse.up()
         page.wait_for_function("!document.getElementById('answer-submit').disabled")
         first_move = page.input_value("#id_move")
@@ -65,7 +65,7 @@ class AnswerFlowTests(E2ETestCase):
         self.assertNotEqual(page.input_value("#id_move"), first_move)
         page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         self.assertEqual(page.input_value("#id_move"), first_move)
-        self._shot("E3_3_move_selected")
+        self._shot("E3_4_move_selected")
 
         # 投稿ボタンを素早く2回押しても、1回目の送信で押せなくなり、保存されるのは1件だけ。
         # サーバー側でも同じブラウザの2件目は受け付けないため、件数だけでは画面側の対策を確かめられない。
@@ -82,16 +82,16 @@ class AnswerFlowTests(E2ETestCase):
         self.assertTrue(disabled_right_after_click)
         page.wait_for_selector("text=投稿しました")
         self.assertEqual(AnswerPost.objects.filter(problem=problem).count(), 1)
-        self._shot("E3_4_posted")
+        self._shot("E3_5_posted")
 
         # 同じブラウザで開き直すと、入力フォームの代わりに「回答済みです」と自分の回答を表示する
         page.goto(self._url(f"/problems/{problem.pk}/answer"))
         page.wait_for_selector("text=回答済みです")
         self.assertEqual(page.query_selector_all("#answer-form"), [])
         self.assertEqual(page.input_value("input[aria-label='ニックネーム']"), "こだぬき")
-        self._shot("E3_4b_already_answered")
+        self._shot("E3_6_already_answered")
 
         page.click("text=みんなの回答を見る")
         page.wait_for_url(re.compile(r".*/problems/[0-9a-f-]+$"))
         self.assertIn("こだぬき", page.content())
-        self._shot("E3_5_answer_list")
+        self._shot("E3_7_answer_list")

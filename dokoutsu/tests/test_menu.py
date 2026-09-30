@@ -61,13 +61,13 @@ class LogoutTests(TestCase):
         self.client.login(username="lo", password="pass1234")
 
     def test_get_does_not_logout(self):
-        """M L1: GETではログアウトしない"""
+        """M A3: GETではログアウトしない"""
         response = self.client.get(reverse("logout"))
         self.assertEqual(response.status_code, 405)
         self.assertEqual(self.client.get(reverse("active_problems")).status_code, 200)
 
     def test_post_logs_out(self):
-        """M L2: POSTでログアウトする"""
+        """M N3: POSTでログアウトする"""
         response = self.client.post(reverse("logout"))
         self.assertRedirects(response, reverse("login"))
         self.assertRedirects(

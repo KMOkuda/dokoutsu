@@ -20,7 +20,7 @@ class DeadlineInitialTests(TestCase):
         return form.initial["deadline_date"], form.initial["deadline_hour"], form.initial["deadline_minute"]
 
     def test_rounds_up_to_next_10_minutes(self):
-        """4a S1: 締切の初期値(切り上げ)"""
+        """4a D1: 締切の初期値(切り上げ)"""
         import datetime
 
         self.assertEqual(
@@ -29,7 +29,7 @@ class DeadlineInitialTests(TestCase):
         )
 
     def test_exact_10_minutes_goes_to_next_slot(self):
-        """4a S2: 締切の初期値(10分ちょうど)"""
+        """4a D2: 締切の初期値(10分ちょうど)"""
         import datetime
 
         self.assertEqual(
@@ -38,7 +38,7 @@ class DeadlineInitialTests(TestCase):
         )
 
     def test_crosses_midnight(self):
-        """4a S3: 締切の初期値(日付またぎ)"""
+        """4a D3: 締切の初期値(日付またぎ)"""
         import datetime
 
         self.assertEqual(

@@ -97,7 +97,7 @@ class OrderingTests(TestCase):
         self.client.login(username="od", password="pass1234")
 
     def test_answers_listed_newest_first(self):
-        """2b S1: 回答の並び順"""
+        """2b D1: 回答の並び順"""
         problem = Problem.objects.create(
             author=self.user, title="並び", board_sgf="AB[pd]", turn=Problem.BLACK,
             deadline=timezone.now() + timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
@@ -111,7 +111,7 @@ class OrderingTests(TestCase):
         self.assertEqual([a.pk for a in response.context["answers"]], [second.pk, first.pk])
 
     def test_archive_ordered_by_closed_at_before_deadline(self):
-        """2d S1: 問題の並び順"""
+        """2d D1: 問題の並び順"""
         now = timezone.now()
         # 締切は古いが、今日受付終了した問題 → 終了日時は今日なので先頭に来る
         closed_today = Problem.objects.create(

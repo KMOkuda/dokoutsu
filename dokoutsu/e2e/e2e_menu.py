@@ -28,7 +28,7 @@ class MenuFlowTests(E2ETestCase):
         self.assertTrue(page.is_visible(".menu-list"))
         # メニュー表示中は背後の画面をスクロールさせない
         self.assertEqual(page.eval_on_selector("body", "b => getComputedStyle(b).overflow"), "hidden")
-        self._shot("E5_1_menu_open")
+        self._shot("E5_2_menu_open")
 
         # 暗転部分をクリックしても閉じない。閉じるのは右上の閉じるボタンのみ
         page.mouse.click(10, 400)

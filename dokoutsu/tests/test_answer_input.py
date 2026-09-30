@@ -79,7 +79,7 @@ class RemainingLabelTests(TestCase):
             return _remaining_label(now + delta)
 
     def test_days_hours_minutes(self):
-        """2a S4: 残り表示の単位の切り替え / 2c S1: 残り期間の単位の切り替え"""
+        """2a D4: 残り表示の単位の切り替え / 2c D1: 残り期間の単位の切り替え"""
         cases = [
             (timedelta(days=2, hours=5), "2日"),
             (timedelta(hours=24), "1日"),
@@ -94,7 +94,7 @@ class RemainingLabelTests(TestCase):
                 self.assertEqual(self._label(delta), expected)
 
     def test_past_deadline_has_no_label(self):
-        """2a S5: 受付終了の問題(締切を過ぎた/受付を終了した)では残り時間を表示せず「締切を過ぎました」を表示する"""
+        """2a D5: 受付終了の問題(締切を過ぎた/受付を終了した)では残り時間を表示せず「締切を過ぎました」を表示する"""
         author = User.objects.create_user(username="pd", email="pd@example.com", password="pass1234")
         expired = Problem.objects.create(
             author=author, title="締切超過", board_sgf="AB[pd]", turn=Problem.BLACK,
@@ -113,7 +113,7 @@ class RemainingLabelTests(TestCase):
                 self.assertContains(response, "締切を過ぎました")
 
     def test_answer_screen_shows_minutes(self):
-        """2a S3: 残り1時間未満は分で表示"""
+        """2a D3: 残り1時間未満は分で表示"""
         author = User.objects.create_user(username="mn", email="mn@example.com", password="pass1234")
         problem = Problem.objects.create(
             author=author, title="分表示", board_sgf="AB[pd]", turn=Problem.BLACK,
