@@ -90,14 +90,14 @@ erDiagram
 
 Djangoの標準認証機能が自動生成するテーブル。独自の拡張は行わない。
 
-| カラム名 | 型 | NULL | 説明 |
-|---|---|---|---|
-| id | SERIAL | NOT NULL | 主キー |
-| username | VARCHAR(150) | NOT NULL | ログインID |
-| password | VARCHAR(128) | NOT NULL | ハッシュ化されたパスワード |
-| email | VARCHAR(254) | NOT NULL | メールアドレス。本アプリでは必須とする |
-| is_active | BOOLEAN | NOT NULL | 有効/無効の状態 |
-| date_joined | TIMESTAMP | NOT NULL | 登録日時 |
+| カラム名 | 型 | NULL | 初期値 | 説明 |
+|---|---|---|---|---|
+| id | SERIAL | NOT NULL | - | 主キー |
+| username | VARCHAR(150) | NOT NULL | - | ログインID |
+| password | VARCHAR(128) | NOT NULL | - | ハッシュ化されたパスワード |
+| email | VARCHAR(254) | NOT NULL | - | メールアドレス。本アプリでは必須とする |
+| is_active | BOOLEAN | NOT NULL | TRUE | 有効/無効の状態。本アプリでは登録時にFALSEで作成し、確認メールのリンクを開くとTRUEにする |
+| date_joined | TIMESTAMP | NOT NULL | 現在日時 | 登録日時 |
 
 > 上記はDjango標準カラムの一部。本アプリで使用するのは `username`、`password`、`email`。
 
@@ -128,7 +128,7 @@ Djangoの標準認証機能が自動生成するテーブル。独自の拡張�
 | nickname | VARCHAR(20) | NOT NULL | - | ニックネーム |
 | rank_id | INTEGER | NOT NULL | - | 棋力。dokoutsu_rank への外部キー。ON DELETE RESTRICT(棋力の選択肢は運用中に削除しない) |
 | move | TEXT | NOT NULL | - | 着手。SGF形式。現時点では1手分の座標(例: `pd`)のみを格納するが、将来の複数手対応(`docs/not_doing.md`参照)を見据え、桁数を制限しない |
-| body | TEXT | NULL | NULL | コメント本文。文字数はアプリ側で200文字までに制限する(詳細設計書 2a) |
+| body | TEXT | NULL | NULL | コメント本文。文字数はアプリ側で200文字までに制限する(詳細設計書 2a「2.1 入力項目」) |
 | created_at | TIMESTAMP | NOT NULL | - | 投稿日時 |
 
 ### 2.4 dokoutsu_rank(棋力)

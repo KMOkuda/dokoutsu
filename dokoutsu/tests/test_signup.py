@@ -14,7 +14,7 @@ EXPIRED_LINK_MESSAGE = "リンクの有効期限が切れています。お手�
 
 
 def assert_expired_activation_page(testcase, response):
-    """詳細設計書 3a「5. エラーケース」8: ログイン画面にメッセージを表示し、新規登録画面へのリンクで再登録を案内する"""
+    """詳細設計書 3a「5. エラーケース」9: ログイン画面にメッセージを表示し、新規登録画面へのリンクで再登録を案内する"""
     testcase.assertContains(response, EXPIRED_LINK_MESSAGE)
     testcase.assertContains(response, f'href="{reverse("signup")}"')
     testcase.assertTemplateUsed(response, "accounts/login.html")
