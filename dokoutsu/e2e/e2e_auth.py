@@ -12,7 +12,10 @@ User = get_user_model()
 
 
 class AuthFlowTests(E2ETestCase):
+    """アカウント関係のフロー(E1 新規登録→ログイン、E6 ボタンの活性条件と入力エラー、E7 パスワード再発行)"""
+
     def test_signup_to_login_flow(self):
+        """E1: 新規登録からログインまで(docs/test/e2e_flows.md の手順とスクリーンショット E1_*)"""
         page = self.page
         page.goto(self._url("/signup"))
         self._shot("E1_1_signup_form")
@@ -37,6 +40,7 @@ class AuthFlowTests(E2ETestCase):
         self.assertIn('aria-label="共通メニュー"', page.content())
         self._shot("E1_3_active_problems_after_login")
     def test_input_errors_displayed_flow(self):
+        """E6: 送信ボタンの活性条件と入力エラーの表示(docs/test/e2e_flows.md の手順とスクリーンショット E6_*)"""
         User.objects.create_user(
             username="e2eerror", email="error@example.com",
             password="pass1234", is_active=True,
@@ -93,6 +97,7 @@ class AuthFlowTests(E2ETestCase):
         self.assertIn("締切は現在より後の日時を指定してください", page.inner_text("#problem-form"))
         self._shot("E6_3_problem_past_deadline")
     def test_password_reset_flow(self):
+        """E7: パスワード再発行(docs/test/e2e_flows.md の手順とスクリーンショット E7_*)"""
         User.objects.create_user(
             username="e2ereset", email="reset@example.com",
             password="oldpass123", is_active=True,

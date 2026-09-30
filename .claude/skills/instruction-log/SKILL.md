@@ -78,6 +78,7 @@ description: ユーザーから指示・修正要望・指摘を受けたとき�
 | 基本設計書の書き方 | `.claude/skills/basic-design-writing/SKILL.md` |
 | コードの書き方 | `.claude/skills/coding-guideline/SKILL.md` |
 | レビューの観点 | `.claude/skills/review-guideline/SKILL.md` |
+| テストの書き方・観点 | `.claude/skills/testing-guideline/SKILL.md` |
 | 説明の仕方・スキルレベル | `.claude/skills/explain-for-skill-level/SKILL.md` |
 
 昇格した場合、ログ側の該当項目に「→ (昇格先)へ昇格済み」と追記する。

@@ -8,7 +8,10 @@ User = get_user_model()
 
 
 class MenuFlowTests(E2ETestCase):
+    """共通メニューのフロー(E5 開閉)"""
+
     def test_menu_toggle_flow(self):
+        """E5: 共通メニューの開閉(docs/test/e2e_flows.md の手順とスクリーンショット E5_*)"""
         User.objects.create_user(
             username="e2emenu", email="menu@example.com",
             password="pass1234", is_active=True,

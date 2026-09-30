@@ -12,6 +12,8 @@ User = get_user_model()
 
 
 class EmailSendLimitTests(TestCase):
+    """メール送信回数の制限(登録確認・パスワード再発行。送信先ごと・機能ごとに直近24時間で5回まで)"""
+
     LIMIT_MESSAGE = "送信回数の上限に達しました。時間をおいてもう一度お試しください"
 
     def _signup(self, username):
@@ -21,6 +23,7 @@ class EmailSendLimitTests(TestCase):
         )
 
     def test_signup_and_resend_share_limit_of_5_per_24_hours(self):
+        """3a L1: 登録・再送・再登録の合計で5回まで"""
         from django.core import mail
 
         # 登録1回 + 再送3回 + 再登録1回 = 5回までは送れる
@@ -39,17 +42,20 @@ class EmailSendLimitTests(TestCase):
         self.assertEqual(list(User.objects.values_list("username", flat=True)), ["limit2"])
 
     def test_limit_resets_after_24_hours(self):
+        """3a L2: 24時間経つと再び送れる"""
         from ..models import EmailSendLog
 
         for _ in range(5):
             EmailSendLog.objects.create(email="limit@example.com", purpose=EmailSendLog.SIGNUP)
         self.assertContains(self._signup("old1"), self.LIMIT_MESSAGE)
+        # 記録の日時を過去にずらし、期間が過ぎた状態を作る
         EmailSendLog.objects.update(created_at=timezone.now() - timedelta(hours=24, minutes=1))
         self.assertRedirects(self._signup("new1"), reverse("signup_sent"))
         # 24時間より古い記録は数える際に削除される
         self.assertEqual(EmailSendLog.objects.count(), 1)
 
     def test_uppercase_address_counted_as_same_address(self):
+        """3a L3: 大文字・小文字の違いでは上限をすり抜けられない"""
         from ..models import EmailSendLog
 
         for _ in range(5):
@@ -61,6 +67,7 @@ class EmailSendLimitTests(TestCase):
         self.assertContains(response, self.LIMIT_MESSAGE)
 
     def test_signup_and_password_reset_counted_separately(self):
+        """3a L4: 登録確認とパスワード再発行は別々に数える"""
         from ..models import EmailSendLog
 
         User.objects.create_user(username="sep", email="limit@example.com", password="pass1234")
@@ -70,11 +77,14 @@ class EmailSendLimitTests(TestCase):
         self.assertRedirects(response, reverse("password_reset"))
 
     def test_password_reset_limit_same_for_registered_and_unregistered(self):
+        """6a L1: 登録のあるメールアドレスは5回まで / 6a L2: 登録のないメールアドレスも同じように数える"""
         from django.core import mail
 
         User.objects.create_user(username="reg", email="reg@example.com", password="pass1234")
         for email in ("reg@example.com", "nobody@example.com"):
+            # subTest: 1つのテストの中で複数の値を試し、失敗した場合はどの値で失敗したかを個別に報告させる
             with self.subTest(email=email):
+                # self.client_class(): 新しいテスト用ブラウザを作る(Cookieを共有しない別のブラウザ)
                 client = self.client_class()
                 for _ in range(5):
                     response = client.post(reverse("password_reset"), {"email": email})

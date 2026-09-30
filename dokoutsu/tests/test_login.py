@@ -9,36 +9,43 @@ User = get_user_model()
 
 
 class LoginTests(TestCase):
+    """3b ログイン: ID・メールアドレスでのログイン、ログイン状態の保持、エラー"""
+
     def setUp(self):
         self.user = User.objects.create_user(
             username="erin", email="e@example.com", password="pass1234", is_active=True
         )
 
     def test_login_with_username(self):
+        """3b N1: ユーザー名でログインできる"""
         response = self.client.post(
             reverse("login"), {"login_id": "erin", "password": "pass1234"}
         )
         self.assertRedirects(response, reverse("active_problems"))
 
     def test_login_with_email(self):
+        """3b N2: メールアドレスでログインできる"""
         response = self.client.post(
             reverse("login"), {"login_id": "e@example.com", "password": "pass1234"}
         )
         self.assertRedirects(response, reverse("active_problems"))
 
     def test_remember_unchecked_sets_session_expire_at_browser_close(self):
+        """3b N3: ログイン状態を保持するチェックなしでセッションが即時失効設定になる"""
         self.client.post(
             reverse("login"), {"login_id": "erin", "password": "pass1234"}
         )
         self.assertEqual(self.client.session.get_expire_at_browser_close(), True)
 
     def test_login_wrong_password(self):
+        """3b E1: 認証失敗(パスワード誤り)"""
         response = self.client.post(
             reverse("login"), {"login_id": "erin", "password": "wrong"}
         )
         self.assertContains(response, "IDまたはパスワードが違います")
 
     def test_inactive_user_blocked(self):
+        """3b E2: 未確認アカウント"""
         User.objects.create_user(
             username="frank", email="f@example.com", password="pass1234", is_active=False
         )
@@ -48,6 +55,7 @@ class LoginTests(TestCase):
         self.assertContains(response, "メールアドレスの確認が完了していません")
 
     def test_required_fields_empty_rejected(self):
+        """3b E3: 必須項目未入力"""
         response = self.client.post(reverse("login"), {"login_id": "", "password": ""})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
@@ -55,6 +63,7 @@ class LoginTests(TestCase):
         self.assertContains(response, "入力してください", count=2)
 
     def test_unknown_login_id_same_error_as_wrong_password(self):
+        """3b A1: 存在しないIDとパスワード誤りを区別しない"""
         response = self.client.post(
             reverse("login"), {"login_id": "nobody-here", "password": "pass1234"}
         )

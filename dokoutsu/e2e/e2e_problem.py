@@ -13,7 +13,10 @@ User = get_user_model()
 
 
 class ProblemFlowTests(E2ETestCase):
+    """問題の出題と管理のフロー(E2 出題、E4 受付終了・シェア・削除)"""
+
     def test_create_problem_flow(self):
+        """E2: 問題を作成して出題完了画面を見る(docs/test/e2e_flows.md の手順とスクリーンショット E2_*)"""
         User.objects.create_user(
             username="e2ecreator", email="creator@example.com",
             password="pass1234", is_active=True,
@@ -66,6 +69,7 @@ class ProblemFlowTests(E2ETestCase):
         self.assertTrue(line_href.startswith("https://line.me/R/msg/text/?"))
         self.assertIn("E2E%E4%BD%9C%E6%88%90%E3%83%86%E3%82%B9%E3%83%88", line_href)  # タイトル(URLエンコード)
     def test_close_and_delete_flow(self):
+        """E4: 問題一覧で終了・シェア・削除を操作する(docs/test/e2e_flows.md の手順とスクリーンショット E4_*)"""
         user = User.objects.create_user(
             username="e2elist", email="list@example.com",
             password="pass1234", is_active=True,

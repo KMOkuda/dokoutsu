@@ -13,7 +13,10 @@ User = get_user_model()
 
 
 class AnswerFlowTests(E2ETestCase):
+    """回答のフロー(E3 回答の投稿→回答一覧)"""
+
     def test_answer_and_view_list_flow(self):
+        """E3: 回答を投稿してから回答一覧を見る(回答後に公開)(docs/test/e2e_flows.md の手順とスクリーンショット E3_*)"""
         author = User.objects.create_user(
             username="e2eauthor", email="author@example.com",
             password="pass1234", is_active=True,
@@ -34,6 +37,7 @@ class AnswerFlowTests(E2ETestCase):
 
         page.fill("#id_nickname", "こだぬき")
         # 棋力は「級」「段」のタブで選択肢を切り替える。初期表示は級
+        # rank_labels(): プルダウンに今並んでいる棋力の名前の一覧を、画面から読み取って返す
         rank_labels = lambda: page.eval_on_selector(
             "#id_rank", "s => Array.from(s.options).slice(1).map(o => o.text)"
         )

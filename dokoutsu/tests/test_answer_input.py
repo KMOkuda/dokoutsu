@@ -14,6 +14,8 @@ User = get_user_model()
 
 
 class AnswerInputValidationTests(TestCase):
+    """2a 回答投稿: 入力値の検証(文字数・着手データの形式)とニックネームの注意書き"""
+
     def setUp(self):
         author = User.objects.create_user(username="av", email="av@example.com", password="pass1234")
         self.problem = Problem.objects.create(
@@ -28,34 +30,42 @@ class AnswerInputValidationTests(TestCase):
         return self.client.post(reverse("answer_create", kwargs={"pk": self.problem.pk}), data)
 
     def test_nickname_notice_shown(self):
+        """2a V1: ニックネームの注意書き"""
         response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
         self.assertContains(response, "ニックネームは本人確認されません。")
 
     def test_nickname_over_20_chars_rejected(self):
+        """2a V2: ニックネームが上限超過"""
         response = self._post(nickname="あ" * 21)
         self.assertContains(response, "20文字以内で入力してください")
         self.assertFalse(AnswerPost.objects.exists())
 
     def test_body_over_200_chars_rejected(self):
+        """2a V3: コメントが上限超過"""
         response = self._post(body="あ" * 201)
         self.assertContains(response, "200文字以内で入力してください")
         self.assertFalse(AnswerPost.objects.exists())
 
     def test_body_200_chars_accepted(self):
+        """2a V4: コメントが上限ちょうど"""
         self._post(body="あ" * 200)
         self.assertEqual(AnswerPost.objects.get().body, "あ" * 200)
 
     def test_malformed_move_rejected(self):
+        """2a V5: 着手データの形式不正"""
         for move in ("zz", "q", "qfq", "<b>"):
+            # subTest: 1つのテストの中で複数の値を試し、失敗した場合はどの値で失敗したかを個別に報告させる
             with self.subTest(move=move):
                 response = self._post(move=move)
                 self.assertContains(response, "着手のデータが正しくありません")
         self.assertFalse(AnswerPost.objects.exists())
 
     def test_move_on_occupied_point_rejected(self):
+        """2a V6: 石がある交点への着手"""
         response = self._post(move="pd")
         self.assertContains(response, "着手のデータが正しくありません")
         self.assertFalse(AnswerPost.objects.exists())
+
 
 class RemainingLabelTests(TestCase):
     """締切までの残り表示(詳細設計書 2a「2.2 表示項目」、2c「2.2 表示項目」)。"""
@@ -64,10 +74,12 @@ class RemainingLabelTests(TestCase):
         from ..services import remaining_label as _remaining_label
 
         now = timezone.now()
+        # サーバーの現在時刻を固定し、実行するたびに結果が変わらないようにする
         with mock.patch("django.utils.timezone.now", return_value=now):
             return _remaining_label(now + delta)
 
     def test_days_hours_minutes(self):
+        """2a S4: 残り表示の単位の切り替え / 2c S1: 残り期間の単位の切り替え"""
         cases = [
             (timedelta(days=2, hours=5), "2日"),
             (timedelta(hours=24), "1日"),
@@ -82,9 +94,11 @@ class RemainingLabelTests(TestCase):
                 self.assertEqual(self._label(delta), expected)
 
     def test_past_deadline_has_no_label(self):
+        """2a S5: 締切を過ぎたら残り時間を表示しない"""
         self.assertIsNone(self._label(timedelta(seconds=-1)))
 
     def test_answer_screen_shows_minutes(self):
+        """2a S3: 残り1時間未満は分で表示"""
         author = User.objects.create_user(username="mn", email="mn@example.com", password="pass1234")
         problem = Problem.objects.create(
             author=author, title="分表示", board_sgf="AB[pd]", turn=Problem.BLACK,

@@ -6,17 +6,21 @@ from django.test import TestCase
 
 
 class DeadlineInitialTests(TestCase):
+    """4a 問題投稿: 締切の初期値(現在時刻より後で最も近い10分刻み)"""
+
     def _initial_at(self, local_dt):
         from zoneinfo import ZoneInfo
 
         from ..forms import ProblemForm
 
         aware = local_dt.replace(tzinfo=ZoneInfo("Asia/Tokyo"))
+        # サーバーの現在時刻を固定し、実行するたびに結果が変わらないようにする
         with mock.patch("django.utils.timezone.now", return_value=aware):
             form = ProblemForm()
         return form.initial["deadline_date"], form.initial["deadline_hour"], form.initial["deadline_minute"]
 
     def test_rounds_up_to_next_10_minutes(self):
+        """4a S1: 締切の初期値(切り上げ)"""
         import datetime
 
         self.assertEqual(
@@ -25,6 +29,7 @@ class DeadlineInitialTests(TestCase):
         )
 
     def test_exact_10_minutes_goes_to_next_slot(self):
+        """4a S2: 締切の初期値(10分ちょうど)"""
         import datetime
 
         self.assertEqual(
@@ -33,6 +38,7 @@ class DeadlineInitialTests(TestCase):
         )
 
     def test_crosses_midnight(self):
+        """4a S3: 締切の初期値(日付またぎ)"""
         import datetime
 
         self.assertEqual(

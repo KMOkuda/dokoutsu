@@ -5,6 +5,15 @@
 ファイル名を test_*.py にしないのは、サーバー側のテスト(python3 manage.py test dokoutsu)で
 ブラウザが必要なE2Eテストまで実行されないようにするため。
 各テストの主要な画面状態のスクリーンショットを docs/test/screenshots/ に保存する。
+
+テストで使うPlaywrightの主な操作:
+- page.goto(URL): 画面を開く
+- page.fill(セレクタ, 文字): 入力欄に文字を入れる
+- page.click(セレクタ): ボタンやリンクを押す
+- page.mouse.down() / up(): 指(マウス)を押す / 離す。盤面の「押している間」「離したとき」を再現する
+- page.wait_for_url(URL) / wait_for_selector(セレクタ): 画面の移動や表示を待ってから次へ進む
+- page.is_disabled / is_visible / is_hidden(セレクタ): ボタンが押せないか、要素が見えているかを確かめる
+- self._shot(名前): その時点の画面のスクリーンショットを保存する
 """
 
 import os

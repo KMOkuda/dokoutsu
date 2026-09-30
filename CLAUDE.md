@@ -32,6 +32,7 @@
 | セキュリティ方針 | .claude/skills/security-guideline/SKILL.md | 認証・入力検証・CSRF/XSS対策 |
 | コーディング規約 | .claude/skills/coding-guideline/SKILL.md | Djangoの構成方針、ファイル分割の基準 |
 | レビューガイド | .claude/skills/review-guideline/SKILL.md | レビュー時に突き合わせる文書と観点 |
+| テストのガイドライン | .claude/skills/testing-guideline/SKILL.md | テスト仕様書・テストコード(サーバー側・E2E)の書き方、スクリーンショット、確認する観点 |
 | スキルレベルと説明ルール | .claude/skills/explain-for-skill-level/SKILL.md | ユーザーの技術レベルと、レベルを超える概念を説明する際のルール |
 
 作業に必要なものだけを読むこと。全文書を一度に読み込まない。
@@ -62,6 +63,7 @@ igo-app/
 │       ├── security-guideline/SKILL.md
 │       ├── coding-guideline/SKILL.md
 │       ├── review-guideline/SKILL.md
+│       ├── testing-guideline/SKILL.md
 │       ├── explain-for-skill-level/SKILL.md
 │       └── instruction-log/SKILL.md
 ├── docs/
@@ -189,3 +191,4 @@ Plan Modeでの計画作成にはOpusモデルを使用する。
 - 設計書に記載のない機能を、設計書の修正提案なしに追加しない
   (追加したい場合は、対応する設計書の修正案を添えて提案し、承認を得る)
 - テストを通すためにテスト内容を緩めない
+- 本番稼働中の別リポジトリ(igovote)を変更・コミットしない。作業はこのリポジトリ(dokoutsu)で行う
