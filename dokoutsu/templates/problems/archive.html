@@ -15,7 +15,7 @@
         <div class="card-body">
           <h2 class="card-title">{{ problem.title }}</h2>
           <p class="card-meta">{{ problem.get_turn_display }}</p>
-          <p class="card-accent">{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }}{% else %}{{ problem.deadline|date:"n月j日 H:i" }}{% endif %} に終了</p>
+          <p class="card-accent">{% if problem.closed_at %}{{ problem.closed_at|date:"n月j日 H:i" }} に受付を終了{% else %}{{ problem.deadline|date:"n月j日 H:i" }} に締切{% endif %}</p>
         </div>
       </div>
       <div class="card-actions">

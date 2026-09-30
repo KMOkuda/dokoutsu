@@ -9,6 +9,9 @@
   <p class="muted">投稿者：{{ problem.author.username }}</p>
   {% if is_open %}
     <p class="accent-small">締切まであと{{ remaining }}</p>
+  {% elif problem.closed_at %}
+    {# 受付の終了は締切前にしか操作できないため、closed_atがあれば出題者が締切前に終了させた問題 #}
+    <p class="accent-small">出題者が受付を終了しました</p>
   {% else %}
     <p class="accent-small">締切を過ぎました</p>
   {% endif %}

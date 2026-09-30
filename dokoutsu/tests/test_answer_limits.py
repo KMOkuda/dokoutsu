@@ -157,10 +157,10 @@ class OneAnswerPerBrowserTests(TestCase):
         response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
         self.assertNotContains(response, reverse("answer_list", kwargs={"pk": self.problem.pk}))
         self.assertContains(response, "みんなの回答は締切後に公開されます。")
-        # 受付終了後に開き直すと、自分の回答とみんなの回答を見るボタンを表示する
+        # 出題者が受付を終了させた後に開き直すと、自分の回答とみんなの回答を見るボタンを表示する
         Problem.objects.filter(pk=self.problem.pk).update(closed_at=timezone.now())
         response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
-        self.assertContains(response, "締切を過ぎました")
+        self.assertContains(response, "出題者が受付を終了しました")
         self.assertContains(response, "回答済みです")
         self.assertContains(response, reverse("answer_list", kwargs={"pk": self.problem.pk}))
 

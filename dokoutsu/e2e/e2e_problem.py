@@ -109,6 +109,8 @@ class ProblemFlowTests(E2ETestCase):
 
         page.goto(self._url("/problems/archive"))
         self.assertIn("E4対象問題", page.content())
+        # 出題者が受付を終了させた問題は、締切ではなく「に受付を終了」と表示する
+        self.assertIn("に受付を終了", page.inner_text(".card-accent"))
         self._shot("E4_6_archive_list")
 
         page.click("[data-sheet-trigger='share']")

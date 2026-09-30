@@ -110,6 +110,26 @@ class OrderingTests(TestCase):
         response = self.client.get(reverse("answer_list", kwargs={"pk": problem.pk}))
         self.assertEqual([a.pk for a in response.context["answers"]], [second.pk, first.pk])
 
+    def test_archive_shows_deadline_or_closed_label(self):
+        """2d D2: 締切を過ぎた問題は「に締切」、出題者が受付を終了させた問題は「に受付を終了」と表示する"""
+        now = timezone.localtime()
+        Problem.objects.create(
+            author=self.user, title="締切で終了", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=now - timedelta(days=1), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        closed_at = now - timedelta(hours=2)
+        Problem.objects.create(
+            author=self.user, title="出題者が終了", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=now + timedelta(days=3), closed_at=closed_at,
+            disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        response = self.client.get(reverse("archive_problems"))
+        deadline_label = timezone.localtime(now - timedelta(days=1)).strftime("%-m月%-d日 %H:%M") + " に締切"
+        closed_label = timezone.localtime(closed_at).strftime("%-m月%-d日 %H:%M") + " に受付を終了"
+        self.assertContains(response, deadline_label)
+        self.assertContains(response, closed_label)
+        self.assertNotContains(response, " に終了")
+
     def test_archive_ordered_by_closed_at_before_deadline(self):
         """2d D1: 問題の並び順"""
         now = timezone.now()
