@@ -1149,7 +1149,8 @@ class AnswerPostLimitTests(TestCase):
         ]
 
     def _post(self, problem, **meta):
-        return self.client.post(
+        # 同じブラウザからは1問題1回しか回答できないため、同じIPアドレスの別々のブラウザからの投稿として送る
+        return self.client_class().post(
             reverse("answer_create", kwargs={"pk": problem.pk}),
             {"nickname": "連投", "rank": self.rank.pk, "move": "qf", "body": ""},
             **meta,
@@ -1205,3 +1206,74 @@ class AnswerPostLimitTests(TestCase):
         self._post(self.problems[0])
         self.problems[0].delete()
         self.assertEqual(AnswerPostLog.objects.count(), 0)
+
+
+# --- 同じブラウザからは1問題につき1回だけ回答できる(詳細設計書 2a「7. この画面固有の設計事項」) ---
+
+
+class OneAnswerPerBrowserTests(TestCase):
+    def setUp(self):
+        author = User.objects.create_user(username="one", email="one@example.com", password="pass1234")
+        self.rank = Rank.objects.first()
+        self.problem = self._problem(author, Problem.AFTER_DEADLINE, timedelta(days=1))
+        self.author = author
+
+    def _problem(self, author, disclosure_type, delta):
+        return Problem.objects.create(
+            author=author, title="1回答", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=timezone.now() + delta, disclosure_type=disclosure_type,
+        )
+
+    def _post(self, client, problem, move="qf"):
+        return client.post(
+            reverse("answer_create", kwargs={"pk": problem.pk}),
+            {"nickname": "いちど", "rank": self.rank.pk, "move": move, "body": "最初の一手"},
+        )
+
+    def test_revisit_shows_own_answer_instead_of_form(self):
+        self.assertContains(self._post(self.client, self.problem), "投稿しました！")
+        response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
+        self.assertContains(response, "回答済みです")
+        self.assertContains(response, 'value="いちど"')
+        self.assertContains(response, 'data-move="qf"')
+        self.assertContains(response, 'value="最初の一手"')
+        self.assertNotContains(response, 'id="answer-form"')
+
+    def test_second_post_from_same_browser_rejected(self):
+        self._post(self.client, self.problem)
+        response = self._post(self.client, self.problem, move="dd")
+        self.assertContains(response, "この問題には回答済みです")
+        self.assertContains(response, 'data-move="qf"')
+        self.assertEqual(AnswerPost.objects.count(), 1)
+
+    def test_other_browser_can_answer(self):
+        self._post(self.client, self.problem)
+        self.assertContains(self._post(self.client_class(), self.problem, move="dd"), "投稿しました！")
+        self.assertEqual(AnswerPost.objects.count(), 2)
+
+    def test_after_answer_type_shows_answer_list_link_on_revisit(self):
+        problem = self._problem(self.author, Problem.AFTER_ANSWER, timedelta(days=1))
+        self._post(self.client, problem)
+        response = self.client.get(reverse("answer_create", kwargs={"pk": problem.pk}))
+        self.assertContains(response, reverse("answer_list", kwargs={"pk": problem.pk}))
+
+    def test_after_deadline_type_hides_link_until_closed(self):
+        self._post(self.client, self.problem)
+        response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
+        self.assertNotContains(response, reverse("answer_list", kwargs={"pk": self.problem.pk}))
+        self.assertContains(response, "みんなの回答は締切後に公開されます。")
+        # 受付終了後に開き直すと、自分の回答とみんなの回答を見るボタンを表示する
+        Problem.objects.filter(pk=self.problem.pk).update(closed_at=timezone.now())
+        response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
+        self.assertContains(response, "締切を過ぎました")
+        self.assertContains(response, "回答済みです")
+        self.assertContains(response, reverse("answer_list", kwargs={"pk": self.problem.pk}))
+
+    def test_session_without_answer_id_still_treated_as_answered(self):
+        # この機能を入れる前のセッション(回答済みの問題の一覧だけを持つ)でも、回答済みとして扱う
+        session = self.client.session
+        session["answered_problems"] = [str(self.problem.pk)]
+        session.save()
+        response = self.client.get(reverse("answer_create", kwargs={"pk": self.problem.pk}))
+        self.assertContains(response, "回答済みです")
+        self.assertNotContains(response, 'id="answer-form"')

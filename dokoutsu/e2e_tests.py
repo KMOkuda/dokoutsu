@@ -197,6 +197,13 @@ class E2EFlowTests(StaticLiveServerTestCase):
         page.wait_for_selector("text=投稿しました")
         self._shot("E3_4_posted")
 
+        # 同じブラウザで開き直すと、入力フォームの代わりに「回答済みです」と自分の回答を表示する
+        page.goto(self._url(f"/problems/{problem.pk}/answer"))
+        page.wait_for_selector("text=回答済みです")
+        self.assertEqual(page.query_selector_all("#answer-form"), [])
+        self.assertEqual(page.input_value("input[aria-label='ニックネーム']"), "こだぬき")
+        self._shot("E3_4b_already_answered")
+
         page.click("text=みんなの回答を見る")
         page.wait_for_url(re.compile(r".*/problems/[0-9a-f-]+$"))
         self.assertIn("こだぬき", page.content())

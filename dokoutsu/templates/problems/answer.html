@@ -11,24 +11,29 @@
   {% endif %}
 </div>
 
-{% if posted %}
-  <div class="answer-inputs is-disabled">
-    <input type="text" value="{{ form.cleaned_data.nickname }}" disabled aria-label="ニックネーム">
-    <input type="text" value="{{ form.cleaned_data.rank.label }}" disabled aria-label="棋力" class="rank-display">
-    <span class="turn-badge">{% if problem.turn == 'black' %}<i class="fa-solid fa-circle" aria-hidden="true"></i>{% else %}<i class="fa-regular fa-circle" aria-hidden="true"></i>{% endif %} {{ problem.get_turn_display }}</span>
-  </div>
-  <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}" data-move="{{ posted_move }}" data-turn="{{ problem.turn }}" data-no-zoom></section>
-  <div class="posted-message">
-    <p class="accent-title">投稿しました！</p>
+{% if answered %}
+  {% if answered_error %}<p class="errorlist answer-errors" role="alert">{{ answered_error }}</p>{% endif %}
+  {% if my_answer %}
+    <div class="answer-inputs is-disabled">
+      <input type="text" value="{{ my_answer.nickname }}" disabled aria-label="ニックネーム">
+      <input type="text" value="{{ my_answer.rank.label }}" disabled aria-label="棋力" class="rank-display">
+      <span class="turn-badge">{% if problem.turn == 'black' %}<i class="fa-solid fa-circle" aria-hidden="true"></i>{% else %}<i class="fa-regular fa-circle" aria-hidden="true"></i>{% endif %} {{ problem.get_turn_display }}</span>
+    </div>
+  {% endif %}
+  <section class="board-area" aria-label="盤面" data-goban-viewer data-labels data-sgf="{{ problem.board_sgf }}" data-move="{{ my_answer.move|default:'' }}" data-turn="{{ problem.turn }}" data-no-zoom></section>
+  <section class="posted-message" aria-label="回答の状態">
+    <p class="accent-title">{% if just_posted %}投稿しました！{% else %}回答済みです{% endif %}</p>
     {% if show_answer_list_link %}
       <p class="muted">他の人の投稿が見られます。</p>
     {% else %}
       <p class="muted">みんなの回答は締切後に公開されます。</p>
     {% endif %}
-  </div>
-  <div class="field">
-    <input type="text" value="{{ form.cleaned_data.body }}" placeholder="コメント" disabled aria-label="コメント">
-  </div>
+  </section>
+  {% if my_answer %}
+    <div class="field">
+      <input type="text" value="{{ my_answer.body }}" placeholder="コメント" disabled aria-label="コメント">
+    </div>
+  {% endif %}
   {% if show_answer_list_link %}
     <div class="bottom-actions">
       <a class="btn-primary" href="{% url 'answer_list' pk=problem.pk %}">みんなの回答を見る</a>
