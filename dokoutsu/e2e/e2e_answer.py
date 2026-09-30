@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from ..models import Problem, Rank
+from ..models import AnswerPost, Problem, Rank
 from .base import E2ETestCase
 
 User = get_user_model()
@@ -67,8 +67,21 @@ class AnswerFlowTests(E2ETestCase):
         self.assertEqual(page.input_value("#id_move"), first_move)
         self._shot("E3_3_move_selected")
 
-        page.click("#answer-submit")
+        # 投稿ボタンを素早く2回押しても、1回目の送信で押せなくなり、保存されるのは1件だけ。
+        # サーバー側でも同じブラウザの2件目は受け付けないため、件数だけでは画面側の対策を確かめられない。
+        # そこで、1回目を押した直後(次の画面が表示される前)にボタンが非活性になっていることも確かめる
+        disabled_right_after_click = page.evaluate(
+            """() => {
+                const button = document.getElementById("answer-submit");
+                button.click();
+                const disabled = button.disabled;
+                button.click();
+                return disabled;
+            }"""
+        )
+        self.assertTrue(disabled_right_after_click)
         page.wait_for_selector("text=投稿しました")
+        self.assertEqual(AnswerPost.objects.filter(problem=problem).count(), 1)
         self._shot("E3_4_posted")
 
         # 同じブラウザで開き直すと、入力フォームの代わりに「回答済みです」と自分の回答を表示する

@@ -8,6 +8,7 @@
     var submit = form.querySelector('button[type="submit"]');
 
     function update() {
+      if (submit.hasAttribute("data-submitting")) return; // 送信中は押せる状態に戻さない(submit_once.js)
       submit.disabled = names.some(function (name) {
         return form.elements[name].value.trim() === "";
       });

@@ -57,6 +57,8 @@
     });
 
     document.getElementById("publish-confirm").addEventListener("click", function () {
+      // form.submit() では送信の知らせ(submit)が起きないため、ここで出題するボタンを押せなくする(二重送信の防止)
+      window.DokoutsuSubmit.lock([this, document.getElementById("problem-submit")]);
       confirmed = true;
       dialog.close();
       form.submit();

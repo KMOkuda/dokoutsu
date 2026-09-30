@@ -37,7 +37,8 @@
           if (next) {
             picked = { xy: [x, y], board: next };
             targetInput.value = Goban.toSgf(x, y);
-            if (submit) submit.disabled = false;
+            // 送信中(submit_once.js が data-submitting を付けたあと)は押せる状態に戻さない
+            if (submit && !submit.hasAttribute("data-submitting")) submit.disabled = false;
           }
           draw();
         },

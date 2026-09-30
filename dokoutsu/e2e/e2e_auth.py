@@ -54,7 +54,16 @@ class AuthFlowTests(E2ETestCase):
         self.assertTrue(page.is_disabled("button:has-text('ログイン')"))
         page.fill("#id_password", "wrongpass1")
         self.assertTrue(page.is_enabled("button:has-text('ログイン')"))
-        page.click("button:has-text('ログイン')")
+        # 送信した瞬間(次の画面が表示される前)にボタンが押せなくなることを確かめる(二重送信の防止)。
+        # requestSubmit(): ボタンを押したときと同じようにフォームを送信する
+        disabled_right_after_submit = page.evaluate(
+            """() => {
+                const button = document.querySelector("button[type='submit']");
+                button.form.requestSubmit(button);
+                return button.disabled;
+            }"""
+        )
+        self.assertTrue(disabled_right_after_submit)
         page.wait_for_selector(".errorlist")
         self.assertIn("IDまたはパスワードが違います", page.inner_text("form"))
         self._shot("E6_1_login_error")
