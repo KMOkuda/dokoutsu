@@ -58,6 +58,7 @@ def signup_sent_view(request):
     if not email:
         return redirect("signup")
     limit_error = None
+    resent = False
     if request.method == "POST":
         user = User.objects.filter(email=email, is_active=False).first()
         if user and not reserve_email_send(email, EmailSendLog.SIGNUP):
@@ -70,10 +71,11 @@ def signup_sent_view(request):
                 None,
                 [user.email],
             )
+            resent = True
     return render(
         request,
         "accounts/signup_sent.html",
-        {"email": email, "limit_error": limit_error, "hide_menu": True},
+        {"email": email, "limit_error": limit_error, "resent": resent, "hide_menu": True},
     )
 
 

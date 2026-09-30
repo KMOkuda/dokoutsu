@@ -112,7 +112,7 @@ Djangoの標準認証機能が自動生成するテーブル。独自の拡張�
 | turn | VARCHAR(5) | NOT NULL | - | 回答する手番。`black` / `white` |
 | deadline | TIMESTAMP | NOT NULL | - | 回答の締切日時 |
 | disclosure_type | VARCHAR(20) | NOT NULL | - | 公開方式。`after_deadline` / `after_answer` |
-| closed_at | TIMESTAMP | NULL | NULL | 締切前に受付を終了した日時 |
+| closed_at | TIMESTAMP | NULL | NULL | 出題者が締切前に受付を終了させた日時 |
 | created_at | TIMESTAMP | NOT NULL | - | 作成日時 |
 | updated_at | TIMESTAMP | NOT NULL | - | 更新日時 |
 

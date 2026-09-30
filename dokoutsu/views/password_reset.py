@@ -19,6 +19,7 @@ def password_reset_view(request):
     if request.user.is_authenticated:
         return redirect("active_problems")
     sent_email = request.session.get("password_reset_email")
+    resent = request.session.pop("password_reset_resent", False)
     limit_error = None
     if request.method == "POST":
         form = PasswordResetRequestForm(request.POST)
@@ -42,13 +43,22 @@ def password_reset_view(request):
                     [email],
                 )
             request.session["password_reset_email"] = email
+            # 送信完了の画面の「メールを再送する」から送った場合は、再送したことを次の表示で伝える
+            # (登録のないメールアドレスでも同じ表示にする)
+            request.session["password_reset_resent"] = bool(request.POST.get("resend"))
             return redirect("password_reset")
     else:
         form = PasswordResetRequestForm()
     return render(
         request,
         "accounts/password_reset.html",
-        {"form": form, "sent_email": sent_email, "limit_error": limit_error, "hide_menu": True},
+        {
+            "form": form,
+            "sent_email": sent_email,
+            "resent": resent,
+            "limit_error": limit_error,
+            "hide_menu": True,
+        },
     )
 
 

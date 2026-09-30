@@ -158,6 +158,14 @@ ul {
   margin-bottom: var(--spacing-xs);
 }
 
+/* 操作が済んだことを伝える一文(例: メールを再送しました)。エラー(.errorlist)と区別できるよう主色で表示する */
+.notice-done {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+  margin: var(--spacing-sm) 0;
+}
+
 .text-link i,
 .empty-state a i {
   font-size: 0.8em;

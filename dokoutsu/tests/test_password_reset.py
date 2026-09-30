@@ -4,6 +4,7 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -86,6 +87,28 @@ class PasswordResetTests(TestCase):
             reverse("password_reset"), {"email": "nobody@example.com"}
         )
         self.assertRedirects(response, reverse("password_reset"))
+
+    def test_resend_shows_message(self):
+        """6a N3: 送信完了の画面からメールを再送でき、再送したことを表示する"""
+        self.client.post(reverse("password_reset"), {"email": "g@example.com"})
+        # 最初の送信の後は、再送の表示を出さない
+        self.assertNotContains(self.client.get(reverse("password_reset")), "再設定用のメールを再送しました")
+        response = self.client.post(
+            reverse("password_reset"), {"email": "g@example.com", "resend": "1"}, follow=True
+        )
+        self.assertContains(response, "再設定用のメールを再送しました")
+        self.assertEqual(len(mail.outbox), 2)
+        # 表示は再送の直後の1回だけ(開き直すと消える)
+        self.assertNotContains(self.client.get(reverse("password_reset")), "再設定用のメールを再送しました")
+
+    def test_resend_to_unknown_email_shows_same_message(self):
+        """6a A3: 登録のないメールアドレスでも、再送の表示は登録済みの場合と同じ(メールは送らない)"""
+        self.client.post(reverse("password_reset"), {"email": "nobody@example.com"})
+        response = self.client.post(
+            reverse("password_reset"), {"email": "nobody@example.com", "resend": "1"}, follow=True
+        )
+        self.assertContains(response, "再設定用のメールを再送しました")
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_token_cannot_be_reused(self):
         """6a A2: 一度使用したトークンは再利用できない"""

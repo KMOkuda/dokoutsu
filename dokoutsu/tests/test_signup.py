@@ -3,6 +3,7 @@
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
@@ -48,14 +49,19 @@ class SignupTests(TestCase):
         self.assertTrue(user.is_active)
 
     def test_resend_activation_email(self):
-        """3a N3: 登録完了案内でメールを再送できる"""
+        """3a N3: 登録完了案内でメールを再送でき、再送したことを表示する"""
         self.client.post(
             reverse("signup"),
             {"email": "resend@example.com", "username": "resend", "password": "pass1234"},
         )
+        # 登録直後の案内には、再送の表示を出さない
+        self.assertNotContains(self.client.get(reverse("signup_sent")), "確認メールを再送しました")
         response = self.client.post(reverse("signup_sent"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "resend@example.com")
+        self.assertContains(response, "確認メールを再送しました")
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(mail.outbox[1].to, ["resend@example.com"])
 
     def test_signup_sent_without_session_redirects_to_signup(self):
         """3a E7: セッション切れ(登録メールアドレスをセッションから取得できない)"""

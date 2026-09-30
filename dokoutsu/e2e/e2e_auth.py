@@ -32,6 +32,7 @@ class AuthFlowTests(E2ETestCase):
         # 確認メールを再送できる。再送ボタンも押した直後に押せなくなる
         self._submit_and_assert_locked("button[type='submit']", "メールを再送する")
         page.wait_for_url("**/signup/sent")
+        page.wait_for_selector("text=確認メールを再送しました")
         self.assertEqual(len(mail.outbox), 2)
         self._shot("E1_3_resent")
 
@@ -131,8 +132,9 @@ class AuthFlowTests(E2ETestCase):
 
         # 再設定メールを再送できる。再送ボタンも押した直後に押せなくなる
         self._submit_and_assert_locked("button[type='submit']", "メールを再送する")
-        page.wait_for_selector("text=メールを送りました")
+        page.wait_for_selector("text=再設定用のメールを再送しました")
         self.assertEqual(len(mail.outbox), 2)
+        self._shot("E7_2_resent")
 
         # 最初のメールのリンクも有効(パスワードを変更するまでは無効にならない)
         page.goto(self._extract_link(mail.outbox[0].body))

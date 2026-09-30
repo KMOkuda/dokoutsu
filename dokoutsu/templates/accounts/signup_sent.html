@@ -7,6 +7,7 @@
     <p>宛に確認メールを送信しました。メール内のリンクを開くと登録が完了します。</p>
   </div>
   <p class="field-hint">リンクの有効期限は24時間です。届かない場合は迷惑メールフォルダをご確認ください。</p>
+  {% if resent %}<p class="notice-done" role="status">確認メールを再送しました</p>{% endif %}
   {% if limit_error %}<p class="errorlist" role="alert">{{ limit_error }}</p>{% endif %}
   <form method="post">
     {% csrf_token %}
