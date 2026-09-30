@@ -23,8 +23,8 @@
 | 詳細設計書 | docs/design/(画面コード)_(画面名).md | 画面ごとの詳細設計。画面コードは基本設計書「2.1 画面一覧」を参照 |
 | 画面ワイヤーフレーム(暫定) | docs/design/screens_wireframe/(画面名).html | 構造の叩き台。クラス名なし、CSS/JS未実装。詳細設計を埋める際の参考資料であり、正式な詳細設計書ではない |
 | 画面デザイン参考(PDF) | docs/design/screens_wireframe/(画面コード)_(画面名)_design.pdf | デザインPDFを画面ごとに分割した参考資料。各詳細設計書から参照する |
-| 画面テンプレート(実装先) | dokoutsu/templates/dokoutsu/(画面名).html | 上記ワイヤーフレームをそのまま複製した状態。ステップ3(実装)でクラス付与・CSS適用・Djangoテンプレート変数の組み込みを行う実体 |
-| テスト仕様書 | docs/test/(画面名).md | 画面ごとのテスト項目 |
+| 画面テンプレート | dokoutsu/templates/(accounts・problems・answers・components)/(画面名).html | 画面ごとのDjangoテンプレート。共通部分(ヘッダー)は templates/base.html、共通メニュー・ダイアログ等は templates/components/ |
+| テスト仕様書 | docs/test/(画面コード)_(画面名).md、docs/test/e2e_flows.md | 画面ごとのテスト項目、画面を操作するE2Eテストの流れ。E2Eのスクリーンショットは docs/test/screenshots/ |
 | 指示・修正要望ログ | docs/instruction_log.md | 過去に受けた指示の記録。作業開始前に必ず確認する |
 | 指示ログの運用ルール | .claude/skills/instruction-log/SKILL.md | 指示を受けた際の記録方法、SKILL.mdへの昇格基準 |
 | 要件定義書 作成ルール | .claude/skills/requirements-writing/SKILL.md | 要件定義書を修正する際の粒度・文体ルール |
@@ -73,20 +73,23 @@ igo-app/
 │   ├── railway_deploy_guide.md # デプロイ手順・記録
 │   ├── design/          # 画面ごとの詳細設計
 │   │   └── screens_wireframe/  # 暫定ワイヤーフレーム(HTML、参考資料)
-│   └── test/             # 画面ごとのテスト仕様書
+│   └── test/             # 画面ごとのテスト仕様書、E2E仕様書(e2e_flows.md)
+│       └── screenshots/  # E2Eテスト実行時のスクリーンショット
 ├── config/               # Djangoプロジェクト設定
 ├── dokoutsu/             # 問題・回答投稿のアプリ
 │   ├── models.py
-│   ├── views.py
 │   ├── urls.py
-│   ├── forms.py
-│   └── templates/
-│       └── dokoutsu/     # 画面テンプレート(現状は暫定ワイヤーフレームのまま。
-│                          # クラス名・CSS適用・テンプレート変数は未実装)
+│   ├── services.py       # 複数の画面で使う処理(送信回数・投稿頻度の制限、残り時間の表示)
+│   ├── views/            # 画面コードごとのビュー(signup・login・password_reset・problems・answers)
+│   ├── forms/            # フォーム(accounts: 3a・3b・6a、problems: 4a・2a)
+│   ├── templates/        # base.html、accounts/・problems/・answers/(画面)、components/(共通部品)
+│   ├── tests/            # サーバー側のテスト(画面ごとのファイル)
+│   └── e2e/              # 画面を操作するE2Eテスト(フローごとのファイル)
 └── static/
-    ├── css/
-    └── js/
-        └── goban.js
+    ├── css/              # 共通(tokens・base・forms・buttons・goban・menu)と画面別
+    ├── js/
+    │   └── goban_*.js    # 盤面(board: 状態とルール、render: 描画、editor/answer/viewer: 画面ごとの操作)
+    └── vendor/           # Font Awesome(アイコン)
 ```
 
 ---
@@ -130,7 +133,7 @@ igo-app/
 - 新規ファイルを作成する場合
 - モデル(models.py)またはDBスキーマを変更する場合
 - 認証・アクセス制御に関わる変更
-- 既存の共通コンポーネント(goban.js等)を変更する場合
+- 既存の共通コンポーネント(goban_*.js等)を変更する場合
 
 Plan Modeでの計画作成にはOpusモデルを使用する。
 計画が承認された後の実行(コード生成・編集・コマンド実行等)にはSonnetモデルに切り替える。
