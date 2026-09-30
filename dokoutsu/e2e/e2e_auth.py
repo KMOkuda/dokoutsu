@@ -23,12 +23,19 @@ class AuthFlowTests(E2ETestCase):
         page.fill("#id_email", "e2e-signup@example.com")
         page.fill("#id_username", "e2esignup")
         page.fill("#id_password", "pass1234")
-        page.click("button:has-text('登録する')")
+        self._submit_and_assert_locked("button[type='submit']", "登録する")
         page.wait_for_url("**/signup/sent")
         self.assertIn("e2e-signup@example.com", page.content())
         self._shot("E1_2_signup_sent")
-
         self.assertEqual(len(mail.outbox), 1)
+
+        # 確認メールを再送できる。再送ボタンも押した直後に押せなくなる
+        self._submit_and_assert_locked("button[type='submit']", "メールを再送する")
+        page.wait_for_url("**/signup/sent")
+        self.assertEqual(len(mail.outbox), 2)
+        self._shot("E1_3_resent")
+
+        # 最初のメールのリンクも有効(再送しても前のリンクは無効にならない)
         link = self._extract_link(mail.outbox[0].body)
         page.goto(link)
         page.wait_for_url("**/login")
@@ -38,7 +45,7 @@ class AuthFlowTests(E2ETestCase):
         page.click("button:has-text('ログイン')")
         page.wait_for_url("**/problems/active")
         self.assertIn('aria-label="共通メニュー"', page.content())
-        self._shot("E1_4_active_problems_after_login")
+        self._shot("E1_5_active_problems_after_login")
     def test_input_errors_displayed_flow(self):
         """E6: 送信ボタンの活性条件と入力エラーの表示(docs/test/e2e_flows.md の手順とスクリーンショット E6_*)"""
         User.objects.create_user(
@@ -73,7 +80,7 @@ class AuthFlowTests(E2ETestCase):
         page.fill("#id_email", "not-an-email")
         page.fill("#id_username", "たろう")
         page.fill("#id_password", "ab1")
-        page.click("button:has-text('登録する')")
+        self._submit_and_assert_locked("button[type='submit']", "登録する")
         page.wait_for_selector(".errorlist")
         errors = page.inner_text("form")
         self.assertIn("正しいメールアドレスを入力してください", errors)
@@ -101,7 +108,7 @@ class AuthFlowTests(E2ETestCase):
         yesterday = (timezone.localtime() - timedelta(days=1)).date().isoformat()
         page.fill("#id_deadline_date", yesterday)
         page.click("#problem-submit")
-        page.click("#publish-confirm")
+        self._submit_and_assert_locked("#publish-confirm", "出題する", also=["#problem-submit"])
         page.wait_for_selector(".errorlist")
         self.assertIn("締切は現在より後の日時を指定してください", page.inner_text("#problem-form"))
         self._shot("E6_3_problem_past_deadline")
@@ -117,11 +124,17 @@ class AuthFlowTests(E2ETestCase):
         self.assertTrue(page.is_disabled("button:has-text('再設定リンクを送る')"))
         page.fill("#id_email", "reset@example.com")
         self.assertTrue(page.is_enabled("button:has-text('再設定リンクを送る')"))
-        page.click("button:has-text('再設定リンクを送る')")
+        self._submit_and_assert_locked("button[type='submit']", "再設定リンクを送る")
         page.wait_for_selector("text=メールを送りました")
         self._shot("E7_1_reset_sent")
-
         self.assertEqual(len(mail.outbox), 1)
+
+        # 再設定メールを再送できる。再送ボタンも押した直後に押せなくなる
+        self._submit_and_assert_locked("button[type='submit']", "メールを再送する")
+        page.wait_for_selector("text=メールを送りました")
+        self.assertEqual(len(mail.outbox), 2)
+
+        # 最初のメールのリンクも有効(パスワードを変更するまでは無効にならない)
         page.goto(self._extract_link(mail.outbox[0].body))
         submit = "button:has-text('パスワードを変更する')"
         self.assertTrue(page.is_disabled(submit))
@@ -129,10 +142,10 @@ class AuthFlowTests(E2ETestCase):
         self.assertTrue(page.is_disabled(submit))
         page.fill("#id_new_password_confirm", "newpass123")
         self.assertTrue(page.is_enabled(submit))
-        self._shot("E7_2_new_password_form")
-        page.click(submit)
+        self._shot("E7_3_new_password_form")
+        self._submit_and_assert_locked("button[type='submit']", "パスワードを変更する")
         page.wait_for_selector("text=変更しました")
-        self._shot("E7_3_changed")
+        self._shot("E7_4_changed")
 
         page.click("text=ログインする")
         page.wait_for_url("**/login")

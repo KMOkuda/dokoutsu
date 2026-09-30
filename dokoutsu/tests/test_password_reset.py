@@ -115,6 +115,19 @@ class PasswordResetInputValidationTests(TestCase):
         )
         self.assertContains(response, "8文字以上、英字と数字を組み合わせてください")
 
+    def test_empty_new_passwords_show_required_message(self):
+        """6a V3: 新しいパスワード・確認用が未入力(詳細設計書 6a「5. エラーケース」6)"""
+        user = User.objects.create_user(username="rs2", email="rs2@example.com", password="pass1234")
+        uidb64, token = uid_token(user)
+        response = self.client.post(
+            reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token}),
+            {"new_password": "", "new_password_confirm": ""},
+        )
+        # 2項目それぞれの入力欄に表示し、パスワードは変更しない
+        self.assertContains(response, "入力してください", count=2)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("pass1234"))
+
 
 class PasswordResetTimeoutTests(TestCase):
     """パスワード再発行リンクの有効期限は60分(詳細設計書 6a、settings.PASSWORD_RESET_TIMEOUT)。"""

@@ -1,4 +1,4 @@
-"""E2Eテスト: 問題の作成(E2)、問題一覧での終了・シェア・削除(E4)"""
+"""E2Eテスト: 問題の作成(E2)、問題一覧での終了・シェア・削除(E4)、受付中の問題の削除(E8)"""
 
 import re
 from datetime import timedelta
@@ -13,7 +13,7 @@ User = get_user_model()
 
 
 class ProblemFlowTests(E2ETestCase):
-    """問題の出題と管理のフロー(E2 出題、E4 受付終了・シェア・削除)"""
+    """問題の出題と管理のフロー(E2 出題、E4 受付終了・シェア・削除、E8 受付中の問題の削除)"""
 
     def test_create_problem_flow(self):
         """E2: 問題を作成して出題完了画面を見る(docs/test/e2e_flows.md の手順とスクリーンショット E2_*)"""
@@ -102,7 +102,7 @@ class ProblemFlowTests(E2ETestCase):
         page.click("#action-sheet >> text=出題を終了する")
         page.wait_for_selector("#close-dialog[open]")
         self._shot("E4_4_close_confirm")
-        page.click("#close-dialog button.confirm-primary")
+        self._submit_and_assert_locked("#close-dialog button.confirm-primary", "出題を終了する")
         page.wait_for_url("**/problems/active")
         self.assertNotIn("E4対象問題", page.content())
         self._shot("E4_5_active_empty")
@@ -123,6 +123,36 @@ class ProblemFlowTests(E2ETestCase):
         page.click("#action-sheet >> text=問題を削除する")
         page.wait_for_selector("#delete-dialog[open]")
         self._shot("E4_8_delete_confirm")
-        page.click("#delete-dialog button.confirm-danger")
+        self._submit_and_assert_locked("#delete-dialog button.confirm-danger", "削除する")
         page.wait_for_url("**/problems/archive")
         self.assertNotIn("E4対象問題", page.content())
+
+    def test_delete_on_active_list_flow(self):
+        """E8: 受付中の問題一覧で問題を削除する(docs/test/e2e_flows.md の手順とスクリーンショット E8_*)"""
+        user = User.objects.create_user(
+            username="e2edelete", email="delete@example.com",
+            password="pass1234", is_active=True,
+        )
+        Problem.objects.create(
+            author=user, title="E8削除対象", board_sgf="AB[pd]",
+            turn=Problem.BLACK, deadline=timezone.now() + timedelta(days=1),
+            disclosure_type=Problem.AFTER_DEADLINE,
+        )
+
+        page = self.page
+        page.goto(self._url("/login"))
+        page.fill("#id_login_id", "e2edelete")
+        page.fill("#id_password", "pass1234")
+        page.click("button:has-text('ログイン')")
+        page.wait_for_url("**/problems/active")
+
+        page.click(".btn-icon[data-sheet-trigger='actions']")
+        page.wait_for_selector("#action-sheet[open]")
+        page.click("#action-sheet >> text=問題を削除する")
+        page.wait_for_selector("#delete-dialog[open]")
+        # 削除ダイアログの「削除する」は、押した直後に押せなくなる(受付中の一覧でも受付終了の一覧と同じ)
+        self._submit_and_assert_locked("#delete-dialog button.confirm-danger", "削除する")
+        page.wait_for_url("**/problems/active")
+        self.assertNotIn("E8削除対象", page.content())
+        self.assertFalse(Problem.objects.filter(author=user).exists())
+        self._shot("E8_2_deleted")

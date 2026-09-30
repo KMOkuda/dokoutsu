@@ -14,6 +14,7 @@
 - page.wait_for_url(URL) / wait_for_selector(セレクタ): 画面の移動や表示を待ってから次へ進む
 - page.is_disabled / is_visible / is_hidden(セレクタ): ボタンが押せないか、要素が見えているかを確かめる
 - self._shot(名前): その時点の画面のスクリーンショットを保存する
+- self._submit_and_assert_locked(...): 送信ボタンを押し、押した直後に非活性になることを確かめる
 """
 
 import os
@@ -56,6 +57,25 @@ class E2ETestCase(StaticLiveServerTestCase):
 
     def _shot(self, name):
         self.page.screenshot(path=os.path.join(SCREENSHOT_DIR, f"{name}.png"))
+
+    def _submit_and_assert_locked(self, selector, label, also=()):
+        """selector(CSSセレクター)のボタンを押し、押した直後(次の画面が表示される前)に、
+        そのボタンと also のボタンが非活性になっていることを確かめる(二重送信の防止)。
+        label は押したボタンの表示名で、別のボタンを押していないことの確認に使う。次の画面の読み込みまで待つ"""
+        selectors = [selector, *also]
+        # Playwrightのclickは押した後の状態を待ってしまうため、ブラウザ内で押して、同じ瞬間の状態を読み取る
+        with self.page.expect_navigation():
+            text, states = self.page.evaluate(
+                """(selectors) => {
+                    const button = document.querySelector(selectors[0]);
+                    button.click();
+                    return [button.textContent.trim(), selectors.map((s) => document.querySelector(s).disabled)];
+                }""",
+                selectors,
+            )
+        self.assertEqual(text, label)
+        for target, disabled in zip(selectors, states):
+            self.assertTrue(disabled, f"送信した直後に非活性になっていない: {target}")
 
     def _url(self, path):
         return f"{self.live_server_url}{path}"
