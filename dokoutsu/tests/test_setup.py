@@ -13,12 +13,12 @@ class RankSeedTests(TestCase):
     """共通: 棋力の初期データ"""
 
     def test_kyu_then_dan_order(self):
-        """共通 C3: 棋力の初期データの並び順"""
-        labels = list(Rank.objects.order_by("sort_order").values_list("label", flat=True))
-        self.assertEqual(labels[0], "1級")
-        self.assertEqual(labels[14], "15級")
-        self.assertEqual(labels[15], "初段")
-        self.assertEqual(labels[-1], "8段")
+        """共通 C3: 棋力の初期データがテーブル定義書2.4のとおり23件そろっている(並び順・区分・表示名)"""
+        # テーブル定義書「2.4 dokoutsu_rank」の初期データ: 1〜15はkyuで1級〜15級、16〜23はdanで初段〜8段
+        expected = [(n, "kyu", f"{n}級") for n in range(1, 16)]
+        expected += [(16, "dan", "初段")] + [(15 + n, "dan", f"{n}段") for n in range(2, 9)]
+        actual = list(Rank.objects.order_by("sort_order").values_list("sort_order", "category", "label"))
+        self.assertEqual(actual, expected)
 
 
 class HomeRedirectTests(TestCase):

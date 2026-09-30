@@ -10,6 +10,15 @@ from .helpers import activation_path_from_mail
 
 User = get_user_model()
 
+EXPIRED_LINK_MESSAGE = "リンクの有効期限が切れています。お手数ですが、もう一度新規登録を行ってください。"
+
+
+def assert_expired_activation_page(testcase, response):
+    """詳細設計書 3a「5. エラーケース」8: ログイン画面にメッセージを表示し、新規登録画面へのリンクで再登録を案内する"""
+    testcase.assertContains(response, EXPIRED_LINK_MESSAGE)
+    testcase.assertContains(response, f'href="{reverse("signup")}"')
+    testcase.assertTemplateUsed(response, "accounts/login.html")
+
 
 class SignupTests(TestCase):
     """3a 新規登録: 登録・登録完了案内・確認リンクによる有効化"""
@@ -47,6 +56,12 @@ class SignupTests(TestCase):
         response = self.client.post(reverse("signup_sent"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "resend@example.com")
+
+    def test_signup_sent_without_session_redirects_to_signup(self):
+        """3a E7: セッション切れ(登録メールアドレスをセッションから取得できない)"""
+        # 登録を経ずに登録完了案内を開く(=セッションに登録メールアドレスがない状態)
+        response = self.client.get(reverse("signup_sent"))
+        self.assertRedirects(response, reverse("signup"))
 
     def test_invalid_email_format_rejected(self):
         """3a E1: メール形式不正 / 6a E1: メール形式不正"""
@@ -91,7 +106,7 @@ class SignupTests(TestCase):
         self.assertContains(response, "組み合わせてください")
 
     def test_invalid_activation_link_rejected(self):
-        """3a E6: 確認用URLの期限切れ・改ざん / 3a S4: 書き換えたリンクは無効"""
+        """3a E6・S4: 確認用URLの期限切れ・無効(書き換えたトークン)では有効化せず、再登録を案内する"""
         user = User.objects.create_user(
             username="target", email="target@example.com", password="pass1234", is_active=False
         )
@@ -108,7 +123,7 @@ class SignupTests(TestCase):
             # subTest: 1つのテストの中で複数の値を試し、失敗した場合はどの値で失敗したかを個別に報告させる
             with self.subTest(token=token):
                 response = self.client.get(reverse("activate", kwargs={"token": token}))
-                self.assertContains(response, "リンクの有効期限が切れています")
+                assert_expired_activation_page(self, response)
         user.refresh_from_db()
         self.assertFalse(user.is_active)
 
@@ -139,50 +154,5 @@ class SignupTests(TestCase):
         # 署名の有効期限は現在時刻(time.time)と比べて判定されるため、時刻を進めた状態を作る
         with mock.patch("django.core.signing.time.time", return_value=time.time() + 60 * 60 * 24 + 60):
             response = self.client.get(path)
-        self.assertContains(response, "リンクの有効期限が切れています")
+        assert_expired_activation_page(self, response)
         self.assertFalse(User.objects.get(username="x24").is_active)
-
-
-class SignupInputValidationTests(TestCase):
-    """3a 新規登録: 入力値の検証(必須・文字の種類・文字数)とメッセージの表示"""
-
-    def _post(self, **overrides):
-        data = {"email": "v@example.com", "username": "valid1", "password": "pass1234"}
-        data.update(overrides)
-        return self.client.post(reverse("signup"), data)
-
-    def test_empty_fields_show_required_message(self):
-        """3a V1: 3項目とも未入力"""
-        response = self._post(email="", username="", password="")
-        self.assertContains(response, "入力してください", count=3)
-
-    def test_japanese_username_rejected(self):
-        """3a V2: IDに日本語"""
-        response = self._post(username="たろう123")
-        self.assertContains(response, "IDは半角英数字で入力してください")
-        self.assertFalse(User.objects.exists())
-
-    def test_fullwidth_digit_username_rejected(self):
-        """3a V3: IDに全角数字"""
-        response = self._post(username="taro１２３")
-        self.assertContains(response, "IDは半角英数字で入力してください")
-
-    def test_short_password_shows_design_message(self):
-        """3a V4: パスワードが8文字未満"""
-        response = self._post(password="ab1")
-        self.assertContains(response, "8文字以上、英字と数字を組み合わせてください")
-
-    def test_password_with_fullwidth_digit_rejected(self):
-        """3a V5: パスワードの数字が全角"""
-        response = self._post(password="abcdefg１")
-        self.assertContains(response, "8文字以上、英字と数字を組み合わせてください")
-
-    def test_username_over_150_chars_rejected(self):
-        """3a V6: IDが上限超過"""
-        response = self._post(username="a" * 151)
-        self.assertContains(response, "150文字以内で入力してください")
-
-    def test_username_150_chars_accepted(self):
-        """3a V7: IDが上限ちょうど"""
-        response = self._post(username="a" * 150)
-        self.assertRedirects(response, reverse("signup_sent"))

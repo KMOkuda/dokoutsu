@@ -52,11 +52,14 @@ class AnswerCreateTests(TestCase):
         self.assertFalse(response.context["show_answer_list_link"])
 
     def test_deadline_passed_shows_message_and_link_on_get(self):
-        """2a N4: 締切を過ぎた問題を開くと「締切を過ぎました」とボタンが表示される"""
-        problem = self._make_problem(Problem.AFTER_DEADLINE, timedelta(seconds=-1))
-        response = self.client.get(reverse("answer_create", kwargs={"pk": problem.pk}))
-        self.assertContains(response, "締切を過ぎました")
-        self.assertContains(response, reverse("answer_list", kwargs={"pk": problem.pk}))
+        """2a N4: 締切を過ぎた問題を開くと、入力フォームを出さず「締切を過ぎました」とボタンを表示する(公開方式を問わない)"""
+        for disclosure_type in (Problem.AFTER_DEADLINE, Problem.AFTER_ANSWER):
+            with self.subTest(disclosure_type=disclosure_type):
+                problem = self._make_problem(disclosure_type, timedelta(seconds=-1))
+                response = self.client.get(reverse("answer_create", kwargs={"pk": problem.pk}))
+                self.assertNotContains(response, 'id="answer-form"')
+                self.assertContains(response, "締切を過ぎました")
+                self.assertContains(response, reverse("answer_list", kwargs={"pk": problem.pk}))
 
     def test_answer_create_404_for_unknown_problem(self):
         """2a E1: 存在しない問題ID"""

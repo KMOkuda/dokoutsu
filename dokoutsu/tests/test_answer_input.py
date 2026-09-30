@@ -94,8 +94,23 @@ class RemainingLabelTests(TestCase):
                 self.assertEqual(self._label(delta), expected)
 
     def test_past_deadline_has_no_label(self):
-        """2a S5: 締切を過ぎたら残り時間を表示しない"""
-        self.assertIsNone(self._label(timedelta(seconds=-1)))
+        """2a S5: 受付終了の問題(締切を過ぎた/受付を終了した)では残り時間を表示せず「締切を過ぎました」を表示する"""
+        author = User.objects.create_user(username="pd", email="pd@example.com", password="pass1234")
+        expired = Problem.objects.create(
+            author=author, title="締切超過", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=timezone.now() - timedelta(seconds=1), disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        # 締切前でも、出題者が受付を終了した(closed_atを設定した)問題は受付終了として扱う
+        closed = Problem.objects.create(
+            author=author, title="受付終了", board_sgf="AB[pd]", turn=Problem.BLACK,
+            deadline=timezone.now() + timedelta(days=1), closed_at=timezone.now(),
+            disclosure_type=Problem.AFTER_DEADLINE,
+        )
+        for problem in (expired, closed):
+            with self.subTest(title=problem.title):
+                response = self.client.get(reverse("answer_create", kwargs={"pk": problem.pk}))
+                self.assertNotContains(response, "締切まであと")
+                self.assertContains(response, "締切を過ぎました")
 
     def test_answer_screen_shows_minutes(self):
         """2a S3: 残り1時間未満は分で表示"""

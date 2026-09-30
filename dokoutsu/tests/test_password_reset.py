@@ -13,6 +13,16 @@ from .helpers import uid_token
 
 User = get_user_model()
 
+INVALID_LINK_MESSAGE = "このリンクは無効です。もう一度パスワード再発行の手続きを行ってください"
+
+
+def assert_invalid_link_page(testcase, response):
+    """詳細設計書 6a「5. エラーケース」3: メッセージを表示し、入力フォームを出さず、
+    メールアドレスを入力する状態(パスワード再発行画面)へのリンクを表示する"""
+    testcase.assertContains(response, INVALID_LINK_MESSAGE)
+    testcase.assertNotContains(response, 'name="new_password"')
+    testcase.assertContains(response, f'href="{reverse("password_reset")}"')
+
 
 class PasswordResetTests(TestCase):
     """6a パスワード再発行: 再設定メールの送信と新しいパスワードの設定"""
@@ -44,13 +54,13 @@ class PasswordResetTests(TestCase):
         self.assertContains(response, "正しいメールアドレスを入力してください")
 
     def test_invalid_token_rejected(self):
-        """6a E2: トークン無効・期限切れ"""
+        """6a E2: トークン無効・期限切れのリンクでは、メッセージと再発行画面へのリンクを表示し、入力フォームを出さない"""
         uidb64, _ = uid_token(self.user)
         url = reverse(
             "password_reset_confirm", kwargs={"uidb64": uidb64, "token": "bad-token"}
         )
         response = self.client.get(url)
-        self.assertContains(response, "このリンクは無効です")
+        assert_invalid_link_page(self, response)
 
     def test_weak_new_password_rejected(self):
         """6a E3: パスワード要件未達"""
@@ -83,7 +93,7 @@ class PasswordResetTests(TestCase):
         url = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
         self.client.post(url, {"new_password": "newpass1", "new_password_confirm": "newpass1"})
         response = self.client.get(url)
-        self.assertContains(response, "このリンクは無効です")
+        assert_invalid_link_page(self, response)
 
 
 class PasswordResetInputValidationTests(TestCase):
@@ -129,9 +139,9 @@ class PasswordResetTimeoutTests(TestCase):
         """6a S3: 再設定リンクは60分以内なら有効"""
         response = self._get_after(59)
         self.assertContains(response, "新しいパスワード")
-        self.assertNotContains(response, "このリンクは無効です")
+        self.assertNotContains(response, INVALID_LINK_MESSAGE)
 
     def test_invalid_after_60_minutes(self):
         """6a S4: 再設定リンクは60分を過ぎると無効"""
         response = self._get_after(61)
-        self.assertContains(response, "このリンクは無効です")
+        assert_invalid_link_page(self, response)
