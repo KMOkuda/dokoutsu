@@ -17,13 +17,20 @@
 - self._submit_and_assert_locked(...): 送信ボタンを押し、押した直後に非活性になることを確かめる
 """
 
+import importlib
 import os
 import re
 
+from django.apps import apps
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import override_settings
 
 from playwright.sync_api import sync_playwright
+
+from ..models import Rank
+
+# 棋力の初期データを入れるマイグレーション(ファイル名が数字で始まるため、importlibで読み込む)
+SEED_RANK_MIGRATION = importlib.import_module("dokoutsu.migrations.0002_seed_rank")
 
 SCREENSHOT_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -50,6 +57,11 @@ class E2ETestCase(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def setUp(self):
+        # E2Eでは、テストが1つ終わるたびにデータベースの全テーブルを空にする(StaticLiveServerTestCaseの動作)。
+        # マイグレーションで入れた棋力の初期データ(23件)も消えるため、各テストの開始時にマイグレーションと
+        # 同じ処理で入れ直す(実行の順番によらず、同じ状態から始める)
+        if not Rank.objects.exists():
+            SEED_RANK_MIGRATION.seed_ranks(apps, None)
         self.page = self.browser.new_page(viewport={"width": 430, "height": 800})
 
     def tearDown(self):

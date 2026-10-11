@@ -26,7 +26,8 @@ class AnswerFlowTests(E2ETestCase):
             turn=Problem.BLACK, deadline=timezone.now() + timedelta(days=1),
             disclosure_type=Problem.AFTER_ANSWER,
         )
-        Rank.objects.first()  # 初期データが投入済みであることの前提確認
+        # 前提: 棋力の初期データ(23件)がある(無いと棋力のプルダウンが空になり、選べずに失敗する)
+        self.assertEqual(Rank.objects.count(), 23)
 
         page = self.page
         page.goto(self._url(f"/problems/{problem.pk}/answer"))

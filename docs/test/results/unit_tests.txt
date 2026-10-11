@@ -1,5 +1,5 @@
-実行日時: 2026-10-11 10:06:46 UTC
-コミット: 94657dd
+実行日時: 2026-10-11 12:44:15 UTC
+コミット: 84dc07e(コミットしていない変更あり)
 Python: 3.11.15 / Django: 5.2.17
 コマンド: python3 manage.py test dokoutsu -v 2
 ----------------------------------------------------------------------
@@ -281,7 +281,7 @@ test_verified_account_still_blocks_duplicates (dokoutsu.tests.test_signup_reregi
 3a R3: 確認済みアカウントとの重複は従来どおり拒否 ... ok
 
 ----------------------------------------------------------------------
-Ran 122 tests in 113.257s
+Ran 122 tests in 116.548s
 
 OK
 Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
