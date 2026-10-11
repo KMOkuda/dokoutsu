@@ -17,7 +17,7 @@
 |---|---|
 | テストコード | `dokoutsu/e2e/base.py`、`dokoutsu/e2e/e2e_auth.py`、`dokoutsu/e2e/e2e_problem.py`、`dokoutsu/e2e/e2e_answer.py`、`dokoutsu/e2e/e2e_menu.py` |
 | 対象 | 3a, 3b, 6a, 4a, 2a, 2b, 2c, 2d, M(共通メニュー) |
-| 実行方法 | `python3 manage.py test dokoutsu.e2e -p "e2e_*.py"` |
+| 実行方法 | `scripts/run_tests.sh e2e`(結果を`docs/test/results/e2e_tests.txt`に保存する)。保存しない場合は`python3 manage.py test dokoutsu.e2e -p "e2e_*.py"` |
 | 前提 | Playwright(Chromium)がインストール済みであること |
 
 ---

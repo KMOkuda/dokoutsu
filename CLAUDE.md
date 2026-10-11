@@ -24,7 +24,7 @@
 | 画面ワイヤーフレーム(暫定) | docs/design/screens_wireframe/(画面名).html | 構造の叩き台。クラス名なし、CSS/JS未実装。詳細設計を埋める際の参考資料であり、正式な詳細設計書ではない |
 | 画面デザイン参考(PDF) | docs/design/screens_wireframe/(画面コード)_(画面名)_design.pdf | デザインPDFを画面ごとに分割した参考資料。各詳細設計書から参照する |
 | 画面テンプレート | dokoutsu/templates/(accounts・problems・answers・components)/(画面名).html | 画面ごとのDjangoテンプレート。共通部分(ヘッダー)は templates/base.html、共通メニュー・ダイアログ等は templates/components/ |
-| テスト仕様書 | docs/test/(画面コード)_(画面名).md、docs/test/e2e_flows.md | 画面ごとのテスト項目、画面を操作するE2Eテストの流れ。E2Eのスクリーンショットは docs/test/screenshots/ |
+| テスト仕様書 | docs/test/(画面コード)_(画面名).md、docs/test/e2e_flows.md | 画面ごとのテスト項目、画面を操作するE2Eテストの流れ。E2Eのスクリーンショットは docs/test/screenshots/、テストの実行結果は docs/test/results/ |
 | 指示・修正要望ログ | docs/instruction_log.md | 過去に受けた指示の記録。作業開始前に必ず確認する |
 | 指示ログの運用ルール | .claude/skills/instruction-log/SKILL.md | 指示を受けた際の記録方法、SKILL.mdへの昇格基準 |
 | 要件定義書 作成ルール | .claude/skills/requirements-writing/SKILL.md | 要件定義書を修正する際の粒度・文体ルール |
@@ -76,7 +76,10 @@ igo-app/
 │   ├── design/          # 画面ごとの詳細設計
 │   │   └── screens_wireframe/  # 暫定ワイヤーフレーム(HTML、参考資料)
 │   └── test/             # 画面ごとのテスト仕様書、E2E仕様書(e2e_flows.md)
-│       └── screenshots/  # E2Eテスト実行時のスクリーンショット
+│       ├── screenshots/  # E2Eテスト実行時のスクリーンショット
+│       └── results/      # テストの実行結果(scripts/run_tests.sh が保存する)
+├── scripts/
+│   └── run_tests.sh      # テストを実行し、結果を docs/test/results/ に保存する
 ├── config/               # Djangoプロジェクト設定
 ├── dokoutsu/             # 問題・回答投稿のアプリ
 │   ├── models.py

@@ -33,11 +33,13 @@ Railwayで公開中(`docs/railway_deploy_guide.md`)。進め方はCLAUDE.mdの�
 ## テストの実行
 
 ```
-python3 manage.py test dokoutsu            # サーバー側のテスト
-python3 manage.py test dokoutsu.e2e -p "e2e_*.py"  # 画面操作のE2Eテスト(Playwright + Chromium が必要)
+scripts/run_tests.sh        # 両方を実行し、結果を docs/test/results/ に保存する(unit・e2e で片方だけ)
+python3 manage.py test dokoutsu            # サーバー側のテストだけ(結果は保存しない)
+python3 manage.py test dokoutsu.e2e -p "e2e_*.py"  # 画面操作のE2Eテストだけ(Playwright + Chromium が必要)
 ```
 
-E2Eテストの内容は`docs/test/e2e_flows.md`、実行時のスクリーンショットは`docs/test/screenshots/`。
+E2Eテストの内容は`docs/test/e2e_flows.md`、実行時のスクリーンショットは`docs/test/screenshots/`、
+テストごとの実行結果(エビデンス)は`docs/test/results/`(`unit_tests.txt`・`e2e_tests.txt`)。
 
 ## 未着手・未作成
 

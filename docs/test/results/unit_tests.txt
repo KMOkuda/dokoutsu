@@ -1,0 +1,287 @@
+実行日時: 2026-10-11 10:06:46 UTC
+コミット: 94657dd
+Python: 3.11.15 / Django: 5.2.17
+コマンド: python3 manage.py test dokoutsu -v 2
+----------------------------------------------------------------------
+Found 122 test(s).
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Operations to perform:
+  Synchronize unmigrated apps: messages, staticfiles
+  Apply all migrations: admin, auth, contenttypes, dokoutsu, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying dokoutsu.0001_initial... OK
+  Applying dokoutsu.0002_seed_rank... OK
+  Applying dokoutsu.0003_emailsendlog... OK
+  Applying dokoutsu.0004_answerpostlog... OK
+  Applying sessions.0001_initial... OK
+System check identified no issues (0 silenced).
+test_after_answer_type_shows_answer_list_link (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_after_answer_type_shows_answer_list_link)
+2a N2: disclosure_typeがafter_answerの場合、投稿後にみんなの回答を見るボタンが表示される ... ok
+test_after_deadline_type_hides_answer_list_link (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_after_deadline_type_hides_answer_list_link)
+2a N3: disclosure_typeがafter_deadlineの場合、投稿後は締切後にシェアされる旨のみ表示する ... ok
+test_anonymous_can_post_answer (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_anonymous_can_post_answer)
+2a N1: 受付中の問題に回答を投稿できる / 2a A1: 未ログインでも回答を投稿できる ... ok
+test_answer_create_404_for_unknown_problem (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_answer_create_404_for_unknown_problem)
+2a E1: 存在しない問題ID ... ok
+test_closed_after_deadline_blocks_new_answers (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_closed_after_deadline_blocks_new_answers)
+2a E2: 受付終了後の投稿 ... ok
+test_deadline_judged_by_server_time (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_deadline_judged_by_server_time)
+2a A2: 締切内かどうかはサーバーの受信時刻で判定する ... ok
+test_deadline_passed_shows_message_and_link_on_get (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_deadline_passed_shows_message_and_link_on_get)
+2a N4: 締切を過ぎた問題を開くと、入力フォームを出さず「締切を過ぎました」とボタンを表示する(公開方式を問わない) ... ok
+test_empty_move_rejected (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_empty_move_rejected)
+2a E3: 着手未入力 ... ok
+test_empty_nickname_rejected (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_empty_nickname_rejected)
+2a E4: ニックネーム未入力 ... ok
+test_unselected_rank_rejected (dokoutsu.tests.test_answer_create.AnswerCreateTests.test_unselected_rank_rejected)
+2a E5: 棋力未選択 ... ok
+test_rank_options_have_category_and_tabs (dokoutsu.tests.test_answer_create.RankCategoryTests.test_rank_options_have_category_and_tabs)
+2a D1: 棋力の級/段タブ ... ok
+test_body_200_chars_accepted (dokoutsu.tests.test_answer_input.AnswerInputValidationTests.test_body_200_chars_accepted)
+2a V4: コメントが上限ちょうど ... ok
+test_body_over_200_chars_rejected (dokoutsu.tests.test_answer_input.AnswerInputValidationTests.test_body_over_200_chars_rejected)
+2a V3: コメントが上限超過 ... ok
+test_malformed_move_rejected (dokoutsu.tests.test_answer_input.AnswerInputValidationTests.test_malformed_move_rejected)
+2a V5: 着手データの形式不正 ... ok
+test_move_on_occupied_point_rejected (dokoutsu.tests.test_answer_input.AnswerInputValidationTests.test_move_on_occupied_point_rejected)
+2a V6: 石がある交点への着手 ... ok
+test_nickname_notice_shown (dokoutsu.tests.test_answer_input.AnswerInputValidationTests.test_nickname_notice_shown)
+2a V1: ニックネームの注意書き ... ok
+test_nickname_over_20_chars_rejected (dokoutsu.tests.test_answer_input.AnswerInputValidationTests.test_nickname_over_20_chars_rejected)
+2a V2: ニックネームが上限超過 ... ok
+test_answer_screen_shows_minutes (dokoutsu.tests.test_answer_input.RemainingLabelTests.test_answer_screen_shows_minutes)
+2a D3: 残り1時間未満は分で表示 ... ok
+test_days_hours_minutes (dokoutsu.tests.test_answer_input.RemainingLabelTests.test_days_hours_minutes)
+2a D4: 残り表示の単位の切り替え / 2c D1: 残り期間の単位の切り替え ... ok
+test_past_deadline_has_no_label (dokoutsu.tests.test_answer_input.RemainingLabelTests.test_past_deadline_has_no_label)
+2a D5: 受付終了の問題では残り時間を表示せず、締切を過ぎた問題は「締切を過ぎました」、 ... ok
+test_11th_post_within_10_minutes_rejected (dokoutsu.tests.test_answer_limits.AnswerPostLimitTests.test_11th_post_within_10_minutes_rejected)
+2a P1: 10分間に11件目は受け付けない ... ok
+test_invalid_posts_are_not_counted (dokoutsu.tests.test_answer_limits.AnswerPostLimitTests.test_invalid_posts_are_not_counted)
+2a P4: 入力エラーの投稿は数えない ... ok
+test_limit_is_per_problem_and_per_ip (dokoutsu.tests.test_answer_limits.AnswerPostLimitTests.test_limit_is_per_problem_and_per_ip)
+2a P2: 問題ごと・IPアドレスごとに数える ... ok
+test_limit_resets_after_10_minutes (dokoutsu.tests.test_answer_limits.AnswerPostLimitTests.test_limit_resets_after_10_minutes)
+2a P3: 10分経つと再び投稿できる ... ok
+test_problem_delete_removes_logs (dokoutsu.tests.test_answer_limits.AnswerPostLimitTests.test_problem_delete_removes_logs)
+2a P6: 問題を削除すると記録も消える ... ok
+test_railway_uses_leftmost_forwarded_for (dokoutsu.tests.test_answer_limits.AnswerPostLimitTests.test_railway_uses_leftmost_forwarded_for)
+2a P5: Railway上の接続元IPアドレス ... ok
+test_after_answer_type_shows_answer_list_link_on_revisit (dokoutsu.tests.test_answer_limits.OneAnswerPerBrowserTests.test_after_answer_type_shows_answer_list_link_on_revisit)
+2a O4: 回答後に公開の問題は開き直しても一覧へ進める ... ok
+test_after_deadline_type_hides_link_until_closed (dokoutsu.tests.test_answer_limits.OneAnswerPerBrowserTests.test_after_deadline_type_hides_link_until_closed)
+2a O5: 締切後に公開の問題は締切後にボタンを表示 ... ok
+test_other_browser_can_answer (dokoutsu.tests.test_answer_limits.OneAnswerPerBrowserTests.test_other_browser_can_answer)
+2a O3: 別のブラウザからは回答できる ... ok
+test_revisit_shows_own_answer_instead_of_form (dokoutsu.tests.test_answer_limits.OneAnswerPerBrowserTests.test_revisit_shows_own_answer_instead_of_form)
+2a O1: 開き直すと回答済みの表示 ... ok
+test_second_post_from_same_browser_rejected (dokoutsu.tests.test_answer_limits.OneAnswerPerBrowserTests.test_second_post_from_same_browser_rejected)
+2a O2: 同じブラウザからの2回目の投稿は拒否 ... ok
+test_session_without_answer_id_still_treated_as_answered (dokoutsu.tests.test_answer_limits.OneAnswerPerBrowserTests.test_session_without_answer_id_still_treated_as_answered)
+2a O6: 機能追加前のセッションでも回答済みとして扱う ... ok
+test_after_answer_type_visible_once_answered_in_session (dokoutsu.tests.test_answer_list.AnswerListVisibilityTests.test_after_answer_type_visible_once_answered_in_session)
+2b N3: after_answer方式で回答済みなら締切前でも閲覧できる ... ok
+test_after_deadline_type_hidden_before_deadline_for_stranger (dokoutsu.tests.test_answer_list.AnswerListVisibilityTests.test_after_deadline_type_hidden_before_deadline_for_stranger)
+2b E2: 閲覧条件を満たさない / 2b A1: 閲覧可否の判定はサーバー側で行う ... ok
+test_answer_list_404_for_unknown_problem (dokoutsu.tests.test_answer_list.AnswerListVisibilityTests.test_answer_list_404_for_unknown_problem)
+2b E1: 存在しない問題ID ... ok
+test_author_can_always_view (dokoutsu.tests.test_answer_list.AnswerListVisibilityTests.test_author_can_always_view)
+2b N1: 出題者本人は常に閲覧できる ... ok
+test_empty_answer_list_shows_placeholder (dokoutsu.tests.test_answer_list.AnswerListVisibilityTests.test_empty_answer_list_shows_placeholder)
+2b N4: 回答が0件のときは案内文を表示する ... ok
+test_public_after_deadline_regardless_of_type (dokoutsu.tests.test_answer_list.AnswerListVisibilityTests.test_public_after_deadline_regardless_of_type)
+2b N2: 締切を過ぎれば公開方式によらず誰でも閲覧できる ... ok
+test_limit_resets_after_24_hours (dokoutsu.tests.test_email_limit.EmailSendLimitTests.test_limit_resets_after_24_hours)
+3a L2: 24時間経つと再び送れる ... ok
+test_password_reset_limit_same_for_registered_and_unregistered (dokoutsu.tests.test_email_limit.EmailSendLimitTests.test_password_reset_limit_same_for_registered_and_unregistered)
+6a L1: 登録のあるメールアドレスは5回まで / 6a L2: 登録のないメールアドレスも同じように数える ... ok
+test_signup_and_password_reset_counted_separately (dokoutsu.tests.test_email_limit.EmailSendLimitTests.test_signup_and_password_reset_counted_separately)
+3a L4: 登録確認とパスワード再発行は別々に数える ... ok
+test_signup_and_resend_share_limit_of_5_per_24_hours (dokoutsu.tests.test_email_limit.EmailSendLimitTests.test_signup_and_resend_share_limit_of_5_per_24_hours)
+3a L1: 登録・再送・再登録の合計で5回まで ... ok
+test_uppercase_address_counted_as_same_address (dokoutsu.tests.test_email_limit.EmailSendLimitTests.test_uppercase_address_counted_as_same_address)
+3a L3: 大文字・小文字の違いでは上限をすり抜けられない ... ok
+test_inactive_user_blocked (dokoutsu.tests.test_login.LoginTests.test_inactive_user_blocked)
+3b E2: 未確認アカウント ... ok
+test_login_with_email (dokoutsu.tests.test_login.LoginTests.test_login_with_email)
+3b N2: メールアドレスでログインできる ... ok
+test_login_with_username (dokoutsu.tests.test_login.LoginTests.test_login_with_username)
+3b N1: ユーザー名でログインできる ... ok
+test_login_wrong_password (dokoutsu.tests.test_login.LoginTests.test_login_wrong_password)
+3b E1: 認証失敗(パスワード誤り) ... ok
+test_remember_unchecked_sets_session_expire_at_browser_close (dokoutsu.tests.test_login.LoginTests.test_remember_unchecked_sets_session_expire_at_browser_close)
+3b N3: ログイン状態を保持するチェックなしでセッションが即時失効設定になる ... ok
+test_required_fields_empty_rejected (dokoutsu.tests.test_login.LoginTests.test_required_fields_empty_rejected)
+3b E3: 必須項目未入力 ... ok
+test_unknown_login_id_same_error_as_wrong_password (dokoutsu.tests.test_login.LoginTests.test_unknown_login_id_same_error_as_wrong_password)
+3b A1: 存在しないIDとパスワード誤りを区別しない ... ok
+test_menu_hidden_on_auth_screens (dokoutsu.tests.test_menu.CommonMenuTests.test_menu_hidden_on_auth_screens)
+M A2: ログイン画面・新規登録画面・パスワード再発行画面では共通メニューを表示しない ... ok
+test_menu_hidden_when_anonymous (dokoutsu.tests.test_menu.CommonMenuTests.test_menu_hidden_when_anonymous)
+M A1: 未ログインでは共通メニューを表示しない ... ok
+test_menu_shown_on_answer_screens_when_logged_in (dokoutsu.tests.test_menu.CommonMenuTests.test_menu_shown_on_answer_screens_when_logged_in)
+M N2: ログイン中は回答投稿画面・回答一覧画面でも共通メニューが表示される ... ok
+test_menu_shown_when_logged_in (dokoutsu.tests.test_menu.CommonMenuTests.test_menu_shown_when_logged_in)
+M N1: ログイン中は共通メニューが表示される ... ok
+test_get_does_not_logout (dokoutsu.tests.test_menu.LogoutTests.test_get_does_not_logout)
+M A3: GETではログアウトしない ... ok
+test_post_logs_out (dokoutsu.tests.test_menu.LogoutTests.test_post_logs_out)
+M N3: POSTでログアウトする ... ok
+test_empty_email_shows_required_message (dokoutsu.tests.test_password_reset.PasswordResetInputValidationTests.test_empty_email_shows_required_message)
+6a V1: メールアドレス未入力 ... ok
+test_empty_new_passwords_show_required_message (dokoutsu.tests.test_password_reset.PasswordResetInputValidationTests.test_empty_new_passwords_show_required_message)
+6a V3: 新しいパスワード・確認用が未入力(詳細設計書 6a「5. エラーケース」6) ... ok
+test_short_new_password_shows_design_message (dokoutsu.tests.test_password_reset.PasswordResetInputValidationTests.test_short_new_password_shows_design_message)
+6a V2: 新しいパスワードが8文字未満 ... ok
+test_invalid_email_format_rejected (dokoutsu.tests.test_password_reset.PasswordResetTests.test_invalid_email_format_rejected)
+3a E1: メール形式不正 / 6a E1: メール形式不正 ... ok
+test_invalid_token_rejected (dokoutsu.tests.test_password_reset.PasswordResetTests.test_invalid_token_rejected)
+6a E2: トークン無効・期限切れのリンクでは、メッセージと再発行画面へのリンクを表示し、入力フォームを出さない ... ok
+test_password_mismatch_rejected (dokoutsu.tests.test_password_reset.PasswordResetTests.test_password_mismatch_rejected)
+6a E4: パスワード不一致 ... ok
+test_resend_shows_message (dokoutsu.tests.test_password_reset.PasswordResetTests.test_resend_shows_message)
+6a N3: 送信完了の画面からメールを再送でき、再送したことを表示する ... ok
+test_resend_to_unknown_email_shows_same_message (dokoutsu.tests.test_password_reset.PasswordResetTests.test_resend_to_unknown_email_shows_same_message)
+6a A3: 登録のないメールアドレスでも、再送の表示は登録済みの場合と同じ(メールは送らない) ... ok
+test_reset_flow (dokoutsu.tests.test_password_reset.PasswordResetTests.test_reset_flow)
+6a N1: 登録済みメールアドレスでリセットメールが送信される / 6a N2: 正しいリンクから新しいパスワードを設定できる ... ok
+test_token_cannot_be_reused (dokoutsu.tests.test_password_reset.PasswordResetTests.test_token_cannot_be_reused)
+6a A2: 一度使用したトークンは再利用できない ... ok
+test_unknown_email_does_not_error (dokoutsu.tests.test_password_reset.PasswordResetTests.test_unknown_email_does_not_error)
+6a A1: 未登録のメールアドレスでもエラーを表示しない ... ok
+test_weak_new_password_rejected (dokoutsu.tests.test_password_reset.PasswordResetTests.test_weak_new_password_rejected)
+6a E3: パスワード要件未達 ... ok
+test_invalid_after_60_minutes (dokoutsu.tests.test_password_reset.PasswordResetTimeoutTests.test_invalid_after_60_minutes)
+6a K2: 再設定リンクは60分を過ぎると無効 ... ok
+test_valid_within_60_minutes (dokoutsu.tests.test_password_reset.PasswordResetTimeoutTests.test_valid_within_60_minutes)
+6a K1: 再設定リンクは60分以内なら有効 ... ok
+test_crosses_midnight (dokoutsu.tests.test_problem_deadline.DeadlineInitialTests.test_crosses_midnight)
+4a D3: 締切の初期値(日付またぎ) ... ok
+test_exact_10_minutes_goes_to_next_slot (dokoutsu.tests.test_problem_deadline.DeadlineInitialTests.test_exact_10_minutes_goes_to_next_slot)
+4a D2: 締切の初期値(10分ちょうど) ... ok
+test_rounds_up_to_next_10_minutes (dokoutsu.tests.test_problem_deadline.DeadlineInitialTests.test_rounds_up_to_next_10_minutes)
+4a D1: 締切の初期値(切り上げ) ... ok
+test_answers_listed_newest_first (dokoutsu.tests.test_problem_list.OrderingTests.test_answers_listed_newest_first)
+2b D1: 回答の並び順 ... ok
+test_archive_ordered_by_closed_at_before_deadline (dokoutsu.tests.test_problem_list.OrderingTests.test_archive_ordered_by_closed_at_before_deadline)
+2d D1: 問題の並び順 ... ok
+test_archive_shows_deadline_or_closed_label (dokoutsu.tests.test_problem_list.OrderingTests.test_archive_shows_deadline_or_closed_label)
+2d D2: 締切を過ぎた問題は「に締切」、出題者が受付を終了させた問題は「に受付を終了」と表示する ... ok
+test_active_and_archive_split (dokoutsu.tests.test_problem_list.ProblemListTests.test_active_and_archive_split)
+2c N1: 自分の受付中の問題だけが表示される / 2d N1: 自分の受付終了の問題だけが表示される ... ok
+test_anonymous_redirected_to_login (dokoutsu.tests.test_problem_list.ProblemListTests.test_anonymous_redirected_to_login)
+2c A1: 未ログインでは閲覧できない / 4a A1: 未ログインでは問題を作成できない / 2d A1: 未ログインでは閲覧できない ... ok
+test_cannot_operate_on_others_problem (dokoutsu.tests.test_problem_list.ProblemListTests.test_cannot_operate_on_others_problem)
+2c E1: 他人の問題への操作 / 2d E1: 他人の問題への操作 ... ok
+test_close_and_delete (dokoutsu.tests.test_problem_list.ProblemListTests.test_close_and_delete)
+2c N2: 出題を終了できる / 2c N3: 問題を削除できる / 2d N2: 問題を削除できる ... ok
+test_closing_already_closed_problem_is_noop (dokoutsu.tests.test_problem_list.ProblemListTests.test_closing_already_closed_problem_is_noop)
+2c E2: 既に受付終了済みの問題への終了操作 ... ok
+test_empty_deadline_date_shows_message (dokoutsu.tests.test_problem_new.ProblemInputValidationTests.test_empty_deadline_date_shows_message)
+4a V4: 締切の日付未選択 ... ok
+test_malformed_board_rejected (dokoutsu.tests.test_problem_new.ProblemInputValidationTests.test_malformed_board_rejected)
+4a V5: 盤面データの形式不正 ... ok
+test_title_100_chars_accepted (dokoutsu.tests.test_problem_new.ProblemInputValidationTests.test_title_100_chars_accepted)
+4a V3: タイトルが上限ちょうど ... ok
+test_title_over_100_chars_rejected (dokoutsu.tests.test_problem_new.ProblemInputValidationTests.test_title_over_100_chars_rejected)
+4a V2: タイトルが上限超過 ... ok
+test_valid_board_accepted (dokoutsu.tests.test_problem_new.ProblemInputValidationTests.test_valid_board_accepted)
+4a V1: 正しい盤面 ... ok
+test_anonymous_redirected_to_login (dokoutsu.tests.test_problem_new.ProblemTests.test_anonymous_redirected_to_login)
+2c A1: 未ログインでは閲覧できない / 4a A1: 未ログインでは問題を作成できない / 2d A1: 未ログインでは閲覧できない ... ok
+test_create_problem_redirects_to_created (dokoutsu.tests.test_problem_new.ProblemTests.test_create_problem_redirects_to_created)
+4a N1: 問題を作成すると出題完了画面へ遷移する ... ok
+test_created_page_404_for_unknown_problem (dokoutsu.tests.test_problem_new.ProblemTests.test_created_page_404_for_unknown_problem)
+4a E4: 出題完了画面: 存在しない問題ID ... ok
+test_created_page_shows_problem_details (dokoutsu.tests.test_problem_new.ProblemTests.test_created_page_shows_problem_details)
+4a N2: 出題完了画面は出題者本人が閲覧できる ... ok
+test_empty_board_rejected (dokoutsu.tests.test_problem_new.ProblemTests.test_empty_board_rejected)
+4a E3: 盤面未入力 ... ok
+test_empty_title_rejected (dokoutsu.tests.test_problem_new.ProblemTests.test_empty_title_rejected)
+4a E1: タイトル未入力 ... ok
+test_other_user_cannot_view_created_page (dokoutsu.tests.test_problem_new.ProblemTests.test_other_user_cannot_view_created_page)
+4a E5: 出題完了画面: 他人の問題 ... ok
+test_past_deadline_rejected (dokoutsu.tests.test_problem_new.ProblemTests.test_past_deadline_rejected)
+4a E2: 締切が過去日時 ... ok
+test_root_redirects_to_active_problems_when_logged_in (dokoutsu.tests.test_setup.HomeRedirectTests.test_root_redirects_to_active_problems_when_logged_in)
+共通 C2: ログイン済みでトップページを開く ... ok
+test_root_redirects_to_login_when_anonymous (dokoutsu.tests.test_setup.HomeRedirectTests.test_root_redirects_to_login_when_anonymous)
+共通 C1: 未ログインでトップページを開く ... ok
+test_kyu_then_dan_order (dokoutsu.tests.test_setup.RankSeedTests.test_kyu_then_dan_order)
+共通 C3: 棋力の初期データがテーブル定義書2.4のとおり23件そろっている(並び順・区分・表示名) ... ok
+test_activation_link_activates_user (dokoutsu.tests.test_signup.SignupTests.test_activation_link_activates_user)
+3a N2: 確認メールのリンクでアカウントが有効化される ... ok
+test_activation_link_expires_after_24_hours (dokoutsu.tests.test_signup.SignupTests.test_activation_link_expires_after_24_hours)
+3a K2: 確認リンクは24時間を過ぎると無効 ... ok
+test_activation_link_valid_within_24_hours (dokoutsu.tests.test_signup.SignupTests.test_activation_link_valid_within_24_hours)
+3a K1: 確認リンクは24時間以内なら有効 ... ok
+test_duplicate_email_rejected (dokoutsu.tests.test_signup.SignupTests.test_duplicate_email_rejected)
+3a E2: メール重複 ... ok
+test_duplicate_username_rejected (dokoutsu.tests.test_signup.SignupTests.test_duplicate_username_rejected)
+3a E4: ID重複 ... ok
+test_invalid_activation_link_rejected (dokoutsu.tests.test_signup.SignupTests.test_invalid_activation_link_rejected)
+3a E6・K3: 確認用URLの期限切れ・無効(書き換えたトークン)では有効化せず、再登録を案内する ... ok
+test_invalid_email_format_rejected (dokoutsu.tests.test_signup.SignupTests.test_invalid_email_format_rejected)
+3a E1: メール形式不正 / 6a E1: メール形式不正 ... ok
+test_invalid_username_format_rejected (dokoutsu.tests.test_signup.SignupTests.test_invalid_username_format_rejected)
+3a E3: ID形式不正 ... ok
+test_resend_activation_email (dokoutsu.tests.test_signup.SignupTests.test_resend_activation_email)
+3a N3: 登録完了案内でメールを再送でき、再送したことを表示する ... ok
+test_signup_creates_inactive_user_and_sends_mail (dokoutsu.tests.test_signup.SignupTests.test_signup_creates_inactive_user_and_sends_mail)
+3a N1: 会員登録が成功する / 3a A1: パスワードはハッシュ化されて保存される ... ok
+test_signup_sent_without_session_redirects_to_signup (dokoutsu.tests.test_signup.SignupTests.test_signup_sent_without_session_redirects_to_signup)
+3a E7: セッション切れ(登録メールアドレスをセッションから取得できない) ... ok
+test_weak_password_rejected (dokoutsu.tests.test_signup.SignupTests.test_weak_password_rejected)
+3a E5: パスワード要件未達 ... ok
+test_email_over_254_chars_rejected (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_email_over_254_chars_rejected)
+3a V8: メールアドレスが上限(254文字)を超える ... ok
+test_empty_fields_show_required_message (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_empty_fields_show_required_message)
+3a V1: 3項目とも未入力 ... ok
+test_fullwidth_digit_username_rejected (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_fullwidth_digit_username_rejected)
+3a V3: IDに全角数字 ... ok
+test_japanese_username_rejected (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_japanese_username_rejected)
+3a V2: IDに日本語 ... ok
+test_password_over_128_chars_rejected (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_password_over_128_chars_rejected)
+3a V9: パスワードが上限(128文字)を超える ... ok
+test_password_with_fullwidth_digit_rejected (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_password_with_fullwidth_digit_rejected)
+3a V5: パスワードの数字が全角 ... ok
+test_short_password_shows_design_message (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_short_password_shows_design_message)
+3a V4: パスワードが8文字未満 ... ok
+test_username_150_chars_accepted (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_username_150_chars_accepted)
+3a V7: IDが上限ちょうど ... ok
+test_username_over_150_chars_rejected (dokoutsu.tests.test_signup_input.SignupInputValidationTests.test_username_over_150_chars_rejected)
+3a V6: IDが上限超過 ... ok
+test_expired_link_page_guides_to_signup (dokoutsu.tests.test_signup_reregistration.ReRegistrationTests.test_expired_link_page_guides_to_signup)
+3a R4: 期限切れ・無効リンクで再登録を案内 ... ok
+test_same_email_and_id_can_register_again_while_unverified (dokoutsu.tests.test_signup_reregistration.ReRegistrationTests.test_same_email_and_id_can_register_again_while_unverified)
+3a R1: 未確認のまま同じメールアドレス・IDで登録し直す ... ok
+test_unverified_account_replaced_when_either_email_or_id_matches (dokoutsu.tests.test_signup_reregistration.ReRegistrationTests.test_unverified_account_replaced_when_either_email_or_id_matches)
+3a R2: メールアドレスとIDがそれぞれ別の未確認アカウントと一致 ... ok
+test_verified_account_still_blocks_duplicates (dokoutsu.tests.test_signup_reregistration.ReRegistrationTests.test_verified_account_still_blocks_duplicates)
+3a R3: 確認済みアカウントとの重複は従来どおり拒否 ... ok
+
+----------------------------------------------------------------------
+Ran 122 tests in 113.257s
+
+OK
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
