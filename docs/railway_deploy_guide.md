@@ -54,7 +54,7 @@ web: python manage.py collectstatic --noinput && python manage.py migrate && gun
 2. **「New Project」** をクリック(「Template」ではなく「Project」であることに注意。Templateは再利用のための設計図で、それだけでは何もデプロイされない)
 3. **「Deploy from GitHub repo」** を選択
 4. GitHubとの連携を許可し、`dokoutsu`リポジトリを選択
-5. ブランチ(`main`)を選択 → 自動でビルド・デプロイが始まる
+5. ブランチ(当初は`main`。現在は本番が`master`、検証環境が`release`。3.6を参照)を選択 → 自動でビルド・デプロイが始まる
 
 ### 3.2 データベース(PostgreSQL)の追加
 
@@ -88,7 +88,22 @@ web: python manage.py collectstatic --noinput && python manage.py migrate && gun
 
 ### 3.6 デプロイ対象ブランチの接続
 
-`Settings` → `Source` → 「Branch connected to production」で`main`を接続し、「Auto deploys when pushed to GitHub」が有効になっていることを確認する。未接続だと、pushしても自動デプロイされない。
+`Settings` → `Source` → 「Branch connected to production」で、本番環境(production)は`master`を接続し、「Auto deploys when pushed to GitHub」が有効になっていることを確認する。未接続だと、pushしても自動デプロイされない。
+
+ブランチの運用(CLAUDE.md「ブランチとプルリク」)は、feature → develop → release → master。`main`は廃止した。
+
+### 3.6.1 検証環境(staging)の追加
+
+releaseブランチを、本番とは別のURL・別のデータベースで動かす。
+
+1. Projectの画面上部の環境名(`production`)をタップ →「+ New Environment」
+2. 「Duplicate Environment」で`production`を複製し、名前を`staging`にする(`dokoutsu`と`Postgres`の両方が複製される。データベースは空の別物になり、本番のデータは入らない)
+3. `staging`環境の`dokoutsu` → `Settings` → `Source`で、接続するブランチを`release`にする
+4. `staging`環境の`dokoutsu` → `Variables`で、`SECRET_KEY`を本番とは別の値に作り直す(`DATABASE_URL`は`staging`の`Postgres`を参照していることを確認する)
+5. `Settings` → `Networking` →「Generate Domain」で検証環境のURLを発行する
+6. 画面左下の「Apply changes」→「Deploy」で反映する
+
+検証環境のログの見方・アカウントの作り方は本番と同じ(3.8)。画面上部の環境名が`staging`になっていることを確かめてから操作する。
 
 ### 3.7 Custom Start Command欄は空のままにする
 
@@ -127,7 +142,7 @@ Railwayのサービス設定には`Custom Start Command`という欄があるが
 | Custom Start CommandとProcfileの内容が同じで混乱 | Custom Start Command欄に直接同じコマンドを入力していた(Procfileより優先されてしまう設定) | Custom Start Command欄を空にして保存し直し、Procfileに一本化 |
 | 本番でCSS・JavaScriptが読み込まれず、画面が崩れる(404) | gunicornは静的ファイルを配信しない。開発用サーバー(runserver)でしか配信されていなかった | WhiteNoiseを導入し、Procfileで`collectstatic`を実行 |
 | 「環境変数 SECRET_KEY が設定されていません」で起動に失敗(Crashed) | Variablesに追加した変数が「反映待ち」のまま、デプロイに渡っていなかった | 画面左下の「Apply changes」→「Deploy」で反映し、Crashedのデプロイは「⋮」→「Redeploy」で再実行 |
-| pushしても自動デプロイされない | 「Branch connected to production」にブランチが接続されていなかった | `main`を接続(3.6) |
+| pushしても自動デプロイされない | 「Branch connected to production」にブランチが接続されていなかった | 本番は`master`、検証環境は`release`を接続(3.6) |
 | 公開URLのトップ(`/`)がNot Found | トップページのURLが設計・実装されていなかった | `/`を受付中の問題一覧へリダイレクトする設定を追加(基本設計書「2.1 画面一覧」) |
 | (予防)ログイン等のフォーム送信が403になるおそれ | Railwayはhttpsを手前で終端し、アプリへはhttpで渡すため、CSRF検証で送信元が一致しない | `SECURE_PROXY_SSL_HEADER`と`CSRF_TRUSTED_ORIGINS`を設定 |
 
@@ -150,7 +165,7 @@ Railwayのサービス設定には`Custom Start Command`という欄があるが
 
 ## 6. 現在の状態
 
-- `dokoutsu`リポジトリ: 詳細設計済みの9画面を実装済み。`main`へのpushで自動デプロイされる
+- `dokoutsu`リポジトリ: 詳細設計済みの9画面を実装済み。`master`へのマージで本番に、`release`へのマージで検証環境に自動デプロイされる
 - Railway: `dokoutsu`(アプリ)と`Postgres`の2サービスが同一Project内で稼働中。`DATABASE_URL`・`DEBUG`・`SECRET_KEY`を設定済み
 - 公開URL: `https://dokoutsu-production.up.railway.app`
 - 未対応: メール送信。現在は実際には送信せず、本文をデプロイログに出力している(`EMAIL_BACKEND`が既定のconsole)。登録確認・パスワード再発行のリンクはDeploy Logsから取り出す(「3.8 ログの見方」を参照)。Amazon SESの設定は未着手
