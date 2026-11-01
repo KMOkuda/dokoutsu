@@ -126,15 +126,17 @@ feature/(作業名) ──(毎週金曜18時にプルリク)──▶ develop �
 
 | ブランチ | 役割 | 誰が入れるか |
 |---|---|---|
-| `feature/(作業名)` | 作業ごとに1本切る(例: `feature/resend-notice`)。developから切る | Claudeがcommit・pushする |
+| `feature/(作業名)` | 作業ごとに1本切る(例: `feature/resend-notice`)。developから切る。その機能のテスト(仕様書・テストコード・実行結果のエビデンス)まで、このブランチで済ませる | Claudeがcommit・pushする |
 | `develop` | レビュー済みの変更を集める | featureからのプルリクを、人がレビューしてマージする |
-| `release` | 本番に出す前の検証。Railwayの検証環境(staging)にデプロイされる | 変更が溜まったら、人がdevelopからマージする |
+| `release` | マージ後のテスト。複数の機能を合わせても壊れていないかを、全テストと検証環境(staging)の画面で確かめる | 変更が溜まったら、人がdevelopからマージする |
 | `master` | 本番。Railwayの本番環境(production)にデプロイされる | 検証環境で確認できたら、人がreleaseからマージする |
 
 - 作業はfeatureブランチで行い、develop・release・masterに直接pushしない(`main`は廃止)
 - 作業名は内容が分かる英小文字とハイフンで付ける。1つの指示(指示ログの1件)につき1本を目安にする
 - featureブランチからdevelopへのプルリクは、毎週金曜18時(日本時間)に定期実行で作る(テストを流し、変更の要約とテスト結果を説明欄に書く)。急ぎの場合は、指示があればその場で作る
-- releaseに入れたら、検証環境で`scripts/run_tests.sh`の結果と実際の画面を確認してからmasterへ入れる
+- 機能ごとのテストはfeatureブランチで行う。テスト仕様書の追記、テストコード、`scripts/run_tests.sh`による全テストの実行と結果の保存まで済ませてからプルリクにする(releaseでのテストに任せない)
+- releaseでのテストは、マージ後のテスト(複数の機能を合わせた状態の確認)の意味合いで行う。releaseで全テストを流し、検証環境で実際の画面を確認してからmasterへ入れる
+- releaseのテストで失敗した場合は、原因の機能のfeatureブランチ(またはdevelopから切った修正用のfeatureブランチ)で直し、developを経由して入れ直す。releaseで直接直さない
 
 ### ステップ3(実装する)の内訳
 
